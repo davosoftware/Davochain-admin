@@ -1,0 +1,451 @@
+import Link from 'next/link';
+import {
+  ArrowLeftRight,
+  ArrowRight,
+  Coins,
+  Fuel,
+  PiggyBank,
+  ShieldCheck,
+  UserCheck,
+  UserX,
+  Users,
+  Wallet,
+} from 'lucide-react';
+import { api, ApiError } from '@/lib/api';
+import type { DriftRow, FuelLevel, InventoryRow, AdminTransaction } from '@/lib/types';
+import type { AdminMe, OverviewSnapshot } from '@/lib/types-admin';
+import { StartHere } from '@/components/start-here';
+import { DateRangeFilter } from '@/components/date-range-filter';
+import { ErrorState } from '@/components/error-state';
+import { StatusBadge } from '@/components/status-badge';
+import {
+  PanelCard,
+  SplitStatCard,
+  StatCard,
+  WalletCard,
+} from '@/components/dashboard-cards';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableEmpty,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { formatCoin, formatNaira, formatPercent, formatUsd, relativeTime } from '@/lib/utils';
+
+export const dynamic = 'force-dynamic';
+
+export default async function OverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
+  const { from, to } = await searchParams;
+  // Sign-in lands everyone here, so somebody without overview.view gets a
+  // starting point rather than an error card on their own home page.
+  const me = await api<AdminMe>('/v1/admin/me').catch(() => null);
+  if (me && !me.permissions.includes('overview.view')) {
+    return <StartHere me={me} />;
+  }
+
+  /*
+   * The desk panels need inventory.view on top of overview.view.
+   *
+   * Somebody cleared for the dashboard but not the desk still gets their
+   * dashboard — minus the panels they are not cleared for. Asking for them
+   * anyway and letting the 403 through turned this page into an error card on
+   * that person's own home screen, every single login.
+   */
+  const canSeeDesk = me?.permissions.includes('inventory.view') ?? false;
+  const noRows = <T,>() => Promise.resolve([] as T[]);
+
+  const [fuel, inventory, drift, transactions, snapshot] = await Promise.all([
+    // Null means "not cleared to see it"; an ApiError means it was asked for
+    // and genuinely failed. Those are different and must not look the same.
+    canSeeDesk
+      ? api<FuelLevel>('/v1/admin/inventory/fuel').catch((e: ApiError) => e)
+      : Promise.resolve(null),
+    canSeeDesk
+      ? api<InventoryRow[]>('/v1/admin/inventory').catch(() => [] as InventoryRow[])
+      : noRows<InventoryRow>(),
+    canSeeDesk
+      ? api<DriftRow[]>('/v1/admin/reconciliation').catch(() => [] as DriftRow[])
+      : noRows<DriftRow>(),
+    api<AdminTransaction[]>('/v1/admin/transactions?limit=8').catch(() => [] as AdminTransaction[]),
+    api<OverviewSnapshot>(
+      `/v1/admin/overview${(() => {
+        const q = new URLSearchParams();
+        if (from) q.set('from', from);
+        if (to) q.set('to', to);
+        const s = q.toString();
+        return s ? `?${s}` : '';
+      })()}`,
+    ).catch(() => null),
+  ]);
+
+  const deskFailed = fuel instanceof ApiError ? fuel : null;
+  const level = fuel instanceof ApiError ? null : fuel;
+
+  // Null when the desk is hidden or broken — in both cases there is no reading
+  // to alarm anybody with, so the alert stays quiet rather than reading zero.
+  const daysOfCover = level ? Number(level.daysOfCover) : null;
+  const low = inventory.filter((r) => r.belowFloor);
+  const broken = drift.filter((d) => !d.withinTolerance && !d.partial);
+  const marginLost = inventory.reduce((s, r) => s + Number(r.marginLostPerDayNgn || 0), 0);
+
+  return (
+    <>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="t-display">Dashboard</h1>
+          <p className="text-muted-foreground t-body mt-1">Welcome back to Davochain</p>
+        </div>
+        <DateRangeFilter from={from} to={to} />
+      </div>
+
+      {/* The two things that can actually wake someone up, first. */}
+      {(daysOfCover !== null && daysOfCover < 3) || broken.length > 0 ? (
+        <div className="mb-5 flex flex-col gap-3">
+          {daysOfCover !== null && daysOfCover < 3 ? (
+            <ErrorState
+              title={
+                daysOfCover < 1
+                  ? 'Naira fuel critical — buys will start failing'
+                  : `Naira fuel low — ${level?.daysOfCover} days of cover`
+              }
+              detail="This funds the fallback swap when a coin runs out. When it empties, buys fail outright. Top up the Quidax NGN wallet."
+            />
+          ) : null}
+          {broken.length > 0 ? (
+            <ErrorState
+              title={`Reconciliation drift on ${broken.map((b) => b.asset.toUpperCase()).join(', ')}`}
+              detail="The ledger and the sub-account balances disagree. Investigate before it grows."
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-5">
+        {/* The treasury, first, because it is the thing that stops trading. */}
+        {level ? (
+          <WalletCard
+            title="Treasury"
+            subtitle="What keeps buys settling"
+            icon={Fuel}
+            tone={daysOfCover !== null && daysOfCover < 3 ? 'rose' : 'amber'}
+            columns={4}
+            stats={[
+              {
+                label: 'Naira fuel',
+                value: formatNaira(level.balanceNgn, 0),
+                hint: `${level.daysOfCover} days of cover`,
+              },
+              {
+                label: 'Daily burn',
+                value: formatNaira(level.dailyBurnNgn, 0),
+                hint: 'fallback swaps, 7-day average',
+              },
+              {
+                label: 'Coins below floor',
+                value: String(low.length),
+                hint: low.length ? low.map((r) => r.asset.toUpperCase()).join(', ') : 'all stocked',
+              },
+              {
+                label: 'Margin forgone',
+                value: formatNaira(marginLost, 0),
+                hint: 'per day, running on fallback',
+              },
+            ]}
+          />
+        ) : deskFailed ? (
+          // Asked for and failed. One panel is missing, not the whole page.
+          <ErrorState title="Could not load the treasury" detail={deskFailed.message} />
+        ) : null}
+
+        {/* People. */}
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Total Users"
+            value={snapshot?.users.total ?? '—'}
+            hint="every account ever registered"
+            icon={Users}
+            tone="blue"
+          />
+          <StatCard
+            label="Total Active Users"
+            value={snapshot?.users.active ?? '—'}
+            hint="can sign in and trade"
+            icon={UserCheck}
+            tone="green"
+          />
+          <StatCard
+            label="Suspended Users"
+            value={snapshot?.users.suspended ?? '—'}
+            hint={snapshot?.users.suspended ? 'cannot sign in' : 'nobody suspended'}
+            icon={UserX}
+            tone="rose"
+          />
+          <SplitStatCard
+            label="KYC"
+            icon={ShieldCheck}
+            tone="green"
+            parts={[
+              { label: 'Approved', value: snapshot?.users.kycApproved ?? '—' },
+              { label: 'Pending', value: snapshot?.users.kycPending ?? '—' },
+            ]}
+          />
+        </div>
+
+        {/* Counts, on one line. What the money was worth lives in the wallets. */}
+        <SplitStatCard
+          label="Transactions"
+          icon={ArrowLeftRight}
+          tone="blue"
+          parts={[
+            { label: 'Total', value: snapshot?.transactions.total ?? '—' },
+            { label: 'Buys', value: snapshot?.transactions.buys ?? '—' },
+            { label: 'Sells', value: snapshot?.transactions.sells ?? '—' },
+            { label: 'Swaps', value: snapshot?.transactions.swaps ?? '—' },
+            { label: 'Deposits', value: snapshot?.transactions.deposits ?? '—' },
+            { label: 'Withdrawals', value: snapshot?.transactions.withdrawals ?? '—' },
+            { label: 'Pending', value: snapshot?.transactions.pending ?? '—' },
+            { label: 'Failed', value: snapshot?.transactions.failed ?? '—' },
+          ]}
+        />
+
+        {/* The two wallets. items-start so the shorter card keeps its own
+            height instead of being stretched into a panel of empty space. */}
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <WalletCard
+            title="NGN Wallet"
+            subtitle="Naira in, out and held"
+            icon={Wallet}
+            tone="blue"
+            stats={[
+              {
+                label: 'Total Deposits',
+                value: snapshot ? formatNaira(snapshot.ngn.deposits, 0) : '—',
+              },
+              {
+                label: 'Total Withdrawals',
+                value: snapshot ? formatNaira(snapshot.ngn.withdrawals, 0) : '—',
+              },
+              {
+                label: 'Spent Buying Crypto',
+                value: snapshot ? formatNaira(snapshot.ngn.spentBuying, 0) : '—',
+              },
+              {
+                label: 'Received Selling Crypto',
+                value: snapshot ? formatNaira(snapshot.ngn.fromSelling, 0) : '—',
+              },
+              {
+                label: 'Held by Users',
+                value: snapshot ? formatNaira(snapshot.ngn.available, 0) : '—',
+                hint: 'available to spend',
+              },
+              {
+                label: 'Locked in Trades',
+                value: snapshot ? formatNaira(snapshot.ngn.locked, 0) : '—',
+                hint: 'committed, in flight',
+              },
+            ]}
+          />
+
+          <WalletCard
+            title="Crypto Wallet"
+            subtitle="Every coin movement in dollars, priced when it happened"
+            icon={Coins}
+            tone="green"
+            columns={3}
+            stats={[
+              {
+                label: 'Total Buy Crypto',
+                value: snapshot ? formatUsd(snapshot.crypto.boughtUsd) : '—',
+              },
+              {
+                label: 'Total Sell Crypto',
+                value: snapshot ? formatUsd(snapshot.crypto.soldUsd) : '—',
+              },
+              {
+                label: 'Total Swap Crypto',
+                value: snapshot ? formatUsd(snapshot.crypto.swappedUsd) : '—',
+              },
+              {
+                label: 'Total Deposits',
+                value: snapshot ? formatUsd(snapshot.crypto.depositedUsd) : '—',
+                hint: 'priced on arrival',
+              },
+              {
+                label: 'Total Withdrawals',
+                value: snapshot ? formatUsd(snapshot.crypto.withdrawnUsd) : '—',
+                hint: 'priced on the way out',
+              },
+            ]}
+          />
+        </div>
+
+        {/*
+          * Earnings, in the two currencies they are actually charged in.
+          *
+          * Never added together and never converted: the rate fee is naira
+          * folded into a naira trade, the swap fee is dollars on a trade with
+          * no naira leg at all. One total would need a rate, and picking one
+          * would make today's exchange rate silently rewrite last month's
+          * earnings every time the page loads.
+          */}
+        <WalletCard
+          title="Earnings"
+          subtitle="What the platform kept, in the currency it was charged in"
+          icon={PiggyBank}
+          tone="violet"
+          columns={3}
+          /* Only for somebody who can actually open it — a link that always
+             403s is worse than no link, which is the same rule the sidebar
+             follows. */
+          action={
+            me?.permissions.includes('earnings.view') ? (
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/earnings">
+                  Every earning <ArrowRight className="size-3.5" />
+                </Link>
+              </Button>
+            ) : undefined
+          }
+          stats={[
+            {
+              label: 'Earned on Buy & Sell',
+              value: snapshot ? formatNaira(snapshot.earnings.rateFeeNgn) : '—',
+              hint: 'the rate fee, folded into every naira trade',
+            },
+            {
+              label: 'Earned on Swaps',
+              value: snapshot ? formatUsd(snapshot.earnings.swapFeeUsd) : '—',
+              hint: 'the flat swap fee, charged in dollars',
+            },
+            {
+              label: 'Earned on Crypto Withdrawals',
+              value: snapshot ? formatUsd(snapshot.earnings.withdrawalFeeUsd) : '—',
+              hint: 'our share only — the chain keeps its own',
+            },
+            {
+              label: 'Earned on Naira Withdrawals',
+              value: snapshot ? formatNaira(snapshot.earnings.ngnWithdrawalFeeNgn) : '—',
+              hint: 'cashing out to a bank',
+            },
+            {
+              label: 'Earned on Gift Cards',
+              value: snapshot ? formatNaira(snapshot.earnings.giftCardProfitNgn) : '—',
+              hint: 'what a card cleared at, less what we quoted',
+            },
+          ]}
+        />
+
+        {/* Detail, last. */}
+        <div className="grid gap-5 lg:grid-cols-5">
+          {canSeeDesk ? (
+          <PanelCard
+            title="Inventory needing attention"
+            icon={Wallet}
+            tone="amber"
+            className="lg:col-span-3"
+            action={
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/inventory">
+                  All coins <ArrowRight className="size-3.5" />
+                </Link>
+              </Button>
+            }
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-5">Coin</TableHead>
+                  <TableHead className="text-right">Held</TableHead>
+                  <TableHead className="text-right">vs avg</TableHead>
+                  <TableHead className="pr-5 text-right">Lost / day</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {inventory.length === 0 ? (
+                  <TableEmpty colSpan={4}>No inventory configured yet.</TableEmpty>
+                ) : (
+                  inventory.slice(0, 6).map((row) => (
+                    <TableRow key={row.asset}>
+                      <TableCell className="pl-5 font-medium">
+                        <div className="flex items-center gap-2">
+                          {row.asset.toUpperCase()}
+                          {row.belowFloor ? <Badge variant="warning">low</Badge> : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-xs">
+                        {formatCoin(row.held)}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right font-mono text-xs ${
+                          Number(row.vsAvgPct) < 0 ? 'text-success' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatPercent(row.vsAvgPct)}
+                      </TableCell>
+                      <TableCell className="pr-5 text-right font-mono text-xs">
+                        {Number(row.marginLostPerDayNgn) > 0
+                          ? formatNaira(row.marginLostPerDayNgn, 0)
+                          : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </PanelCard>
+          ) : null}
+
+          <PanelCard
+            title="Recent activity"
+            icon={ArrowLeftRight}
+            tone="violet"
+            // Takes the whole row when the inventory panel beside it is hidden,
+            // rather than sitting at two fifths width with a gap next to it.
+            className={canSeeDesk ? 'lg:col-span-2' : 'lg:col-span-5'}
+            action={
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/transactions">
+                  All <ArrowRight className="size-3.5" />
+                </Link>
+              </Button>
+            }
+          >
+            <div className="flex flex-col gap-3 px-5 pb-5">
+              {transactions.length === 0 ? (
+                <p className="text-muted-foreground py-6 text-center text-sm">
+                  No transactions yet.
+                </p>
+              ) : (
+                transactions.slice(0, 6).map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">
+                        {tx.type}{' '}
+                        <span className="text-muted-foreground font-normal">
+                          {tx.fromAsset?.toUpperCase()} → {tx.toAsset?.toUpperCase()}
+                        </span>
+                      </p>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {tx.user} · {relativeTime(tx.createdAt)}
+                      </p>
+                    </div>
+                    <StatusBadge status={tx.status} />
+                  </div>
+                ))
+              )}
+            </div>
+          </PanelCard>
+        </div>
+      </div>
+    </>
+  );
+}
