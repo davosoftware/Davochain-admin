@@ -22,6 +22,7 @@ import {
   Store,
   Tags,
   PiggyBank,
+  Power,
   Repeat,
   Scale,
   ScrollText,
@@ -183,6 +184,12 @@ const groups: { label: string; items: NavItem[] }[] = [
         label: 'General settings',
         icon: SlidersHorizontal,
         permission: 'settings.manage',
+      },
+      {
+        href: '/system/withdrawals',
+        label: 'Withdrawals',
+        icon: Power,
+        permission: 'withdrawals.manage',
       },
       {
         href: '/system/kyc-limits',

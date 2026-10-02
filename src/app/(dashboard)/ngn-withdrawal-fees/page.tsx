@@ -13,7 +13,7 @@ export default function NgnWithdrawalFeesPage() {
     <LadderScreen
       kind="NGN_WITHDRAWAL"
       title="Naira withdrawal fee"
-      description="A flat naira charge when a user cashes out to a Nigerian bank, banded by how much is leaving. The payout rail itself is not built yet — this sets the price so it is agreed before the provider is chosen."
+      description="A flat naira charge when a user cashes out to a Nigerian bank, banded by how much is leaving. Payouts are switched on and off under System → Withdrawals — set this fee before switching them on, because an amount below the lowest band is charged nothing."
       globalSubtitle="Naira is one currency, so this one ladder is the whole story."
       perCoin={false}
     />

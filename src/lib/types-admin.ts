@@ -691,3 +691,20 @@ export interface GiftCardTradesPage {
   waiting: number;
   totals: { profitNgn: string; creditedNgn: string };
 }
+
+/** Naira withdrawals still on their way to banks. */
+export interface NgnInFlight {
+  count: number;
+  totalNgn: string;
+}
+
+/** GET / PUT /v1/admin/withdrawals/ngn: the naira-withdrawal switch. */
+export interface NgnWithdrawalsState {
+  enabled: boolean;
+  /** 'override' = set from this dashboard; 'server' = NGN_WITHDRAWALS_ENABLED. */
+  source: 'override' | 'server';
+  serverSetting: boolean;
+  updatedAt: string | null;
+  updatedBy: { id: string; name: string; email: string } | null;
+  inFlight: NgnInFlight;
+}

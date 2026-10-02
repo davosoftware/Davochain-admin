@@ -592,10 +592,10 @@ function EmptyReason({ kind, narrowed }: { kind: EarningKind | null; narrowed: b
   if (kind === 'NGN_WITHDRAWAL') {
     return (
       <>
-        Nothing yet — naira cash-outs are priced but cannot be sent.
+        Nothing yet — no naira cash-out has completed.
         <span className="text-muted-foreground block">
-          There is no payout rail wired up, so no naira withdrawal has ever completed. The fee is
-          already set and will start earning the moment one does.
+          Naira withdrawals are switched on and off under System → Withdrawals. Once they are on,
+          every completed cash-out shows up here with the fee it paid.
         </span>
       </>
     );
