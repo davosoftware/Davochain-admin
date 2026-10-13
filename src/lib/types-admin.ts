@@ -708,3 +708,21 @@ export interface NgnWithdrawalsState {
   updatedBy: { id: string; name: string; email: string } | null;
   inFlight: NgnInFlight;
 }
+
+export interface AlertRecipientRow {
+  id: string;
+  type: string;
+  email: string;
+  enabled: boolean;
+}
+
+export interface AlertRecipientsView {
+  types: Array<{
+    type: string;
+    label: string;
+    description: string;
+    security: boolean;
+    usingEnvFallback: boolean;
+    recipients: AlertRecipientRow[];
+  }>;
+}

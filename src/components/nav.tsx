@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   Sliders,
   Wallet,
+  MailWarning,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -202,6 +203,12 @@ const groups: { label: string; items: NavItem[] }[] = [
         label: 'Notifications',
         icon: Bell,
         permission: 'notifications.send',
+      },
+      {
+        href: '/system/alert-recipients',
+        label: 'Alert recipients',
+        icon: MailWarning,
+        permission: 'alerts.manage',
       },
       {
         href: '/system/credentials',
