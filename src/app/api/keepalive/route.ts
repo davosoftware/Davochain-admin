@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getToken } from '@/lib/session';
 import { API_BASE } from '@/lib/api';
+import { clientForwardHeaders } from '@/lib/client-ip';
 
 /**
  * Tells the API somebody is still here.
@@ -16,7 +17,7 @@ export async function GET(): Promise<NextResponse> {
   if (!token) return NextResponse.json({ alive: false }, { status: 401 });
 
   const res = await fetch(`${API_BASE}/v1/admin/me/sessions`, {
-    headers: { authorization: `Bearer ${token}` },
+    headers: { authorization: `Bearer ${token}`, ...(await clientForwardHeaders()) },
     cache: 'no-store',
   }).catch(() => null);
 

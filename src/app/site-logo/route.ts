@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { API_BASE } from '@/lib/api';
+import { clientForwardHeaders } from '@/lib/client-ip';
 
 /**
  * The site logo, proxied.
@@ -11,6 +12,7 @@ import { API_BASE } from '@/lib/api';
 export async function GET(request: Request): Promise<NextResponse> {
   const version = new URL(request.url).searchParams.get('v') ?? '';
   const res = await fetch(`${API_BASE}/v1/site/logo?v=${encodeURIComponent(version)}`, {
+    headers: await clientForwardHeaders(),
     cache: 'no-store',
   }).catch(() => null);
 

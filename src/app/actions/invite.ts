@@ -1,6 +1,8 @@
 'use server';
 
 import { API_BASE } from '@/lib/api';
+import { clientForwardHeaders } from '@/lib/client-ip';
+import { authFailureMessage } from '@/lib/auth-errors';
 
 /**
  * Accepting an invitation, for somebody who is not signed in.
@@ -33,6 +35,7 @@ const messageOf = (data: unknown, fallback: string): string => {
 export async function checkInvite(token: string): Promise<InviteCheck> {
   try {
     const res = await fetch(`${API_BASE}/v1/admin/auth/invite?token=${encodeURIComponent(token)}`, {
+      headers: await clientForwardHeaders(),
       cache: 'no-store',
     });
     if (!res.ok) return { valid: false };
@@ -49,12 +52,14 @@ export async function acceptInvite(
   try {
     const res = await fetch(`${API_BASE}/v1/admin/auth/invite/accept`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...(await clientForwardHeaders()) },
       body: JSON.stringify({ token, password }),
       cache: 'no-store',
     });
     const data = await res.json().catch(() => null);
-    if (!res.ok) return { error: messageOf(data, 'Could not set your password') };
+    if (!res.ok) {
+      return { error: authFailureMessage(res.status, data, res.headers.get('retry-after'), messageOf(data, 'Could not set your password')) };
+    }
     return { email: (data as { email: string }).email };
   } catch {
     return { error: `Cannot reach the API at ${API_BASE}. Is it running?` };

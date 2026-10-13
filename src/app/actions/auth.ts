@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { clearToken, setToken } from '@/lib/session';
 import { API_BASE } from '@/lib/api';
+import { clientForwardHeaders } from '@/lib/client-ip';
+import { authFailureMessage } from '@/lib/auth-errors';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -28,7 +30,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   try {
     res = await fetch(API_BASE + '/v1/admin/auth/login', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...(await clientForwardHeaders()) },
       body: JSON.stringify(parsed.data),
       cache: 'no-store',
     });
@@ -37,9 +39,13 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   }
 
   if (!res.ok) {
-    // Deliberately vague: confirming which half was wrong tells an attacker
-    // which admin emails exist.
-    return { error: 'Incorrect email or password' };
+    // Deliberately vague for every failure but 429/503: confirming which half
+    // was wrong, or that an account is locked, tells an attacker which admin
+    // emails exist.
+    const data = await res.json().catch(() => null);
+    return {
+      error: authFailureMessage(res.status, data, res.headers.get('retry-after'), 'Incorrect email or password'),
+    };
   }
 
   const { accessToken } = (await res.json()) as { accessToken: string };

@@ -1,6 +1,8 @@
 import 'server-only';
 import { redirect } from 'next/navigation';
 import { getToken } from './session';
+import { clientForwardHeaders } from './client-ip';
+import { authFailureMessage } from './auth-errors';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3000';
 
@@ -9,6 +11,7 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly body?: unknown,
+    readonly retryAfter?: number,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -33,6 +36,8 @@ export async function api<T>(
   const headers = new Headers(rest.headers);
   headers.set('accept', 'application/json');
   if (rest.body) headers.set('content-type', 'application/json');
+  // Every admin is otherwise one IP to the API: one shared rate-limit bucket.
+  for (const [k, v] of Object.entries(await clientForwardHeaders())) headers.set(k, v);
 
   if (authenticated) {
     const token = await getToken();
@@ -82,6 +87,15 @@ export async function api<T>(
       redirect(`/signed-out?reason=${encodeURIComponent(text)}`);
     }
 
+    if (res.status === 429 || res.status === 503) {
+      const retry = Number(res.headers.get('retry-after'));
+      throw new ApiError(
+        authFailureMessage(res.status, parsed, res.headers.get('retry-after'), text),
+        res.status,
+        parsed,
+        Number.isInteger(retry) && retry > 0 ? retry : undefined,
+      );
+    }
     throw new ApiError(text, res.status, parsed);
   }
 

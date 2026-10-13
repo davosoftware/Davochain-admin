@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getToken } from '@/lib/session';
 import { API_BASE } from '@/lib/api';
+import { clientForwardHeaders } from '@/lib/client-ip';
 
 /**
  * Serves an admin's picture from the API.
@@ -18,7 +19,7 @@ export async function GET(
   if (!token) return new NextResponse(null, { status: 401 });
 
   const res = await fetch(`${API_BASE}/v1/admin/admins/${encodeURIComponent(id)}/avatar`, {
-    headers: { authorization: `Bearer ${token}` },
+    headers: { authorization: `Bearer ${token}`, ...(await clientForwardHeaders()) },
     cache: 'no-store',
   }).catch(() => null);
 
