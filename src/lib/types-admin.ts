@@ -717,6 +717,8 @@ export interface AlertRecipientRow {
 }
 
 export interface AlertRecipientsView {
+  /** False when the server has no ALERT_DEFAULT_RECIPIENTS: a type with nobody here reaches nobody. */
+  fallbackConfigured: boolean;
   types: Array<{
     type: string;
     label: string;

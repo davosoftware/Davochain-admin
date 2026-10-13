@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableR
 
 type TypeView = AlertRecipientsView['types'][number];
 
-function TypeSection({ t }: { t: TypeView }) {
+function TypeSection({ t, fallbackConfigured }: { t: TypeView; fallbackConfigured: boolean }) {
   const [email, setEmail] = useState('');
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -38,7 +38,10 @@ function TypeSection({ t }: { t: TypeView }) {
             <ShieldAlert className="mr-1 h-3 w-3" /> security
           </Badge>
         )}
-        {t.usingEnvFallback && <Badge variant="outline">using the server default</Badge>}
+        {t.usingEnvFallback && fallbackConfigured && <Badge variant="outline">using the server default</Badge>}
+        {t.usingEnvFallback && !fallbackConfigured && (
+          <Badge variant="destructive">nobody will be told: add a recipient</Badge>
+        )}
       </div>
       <p className="text-sm text-muted-foreground">{t.description}</p>
       <Table>
@@ -109,7 +112,7 @@ export function AlertRecipientsManager({ view }: { view: AlertRecipientsView }) 
   return (
     <div className="space-y-4">
       {[...security, ...others].map((t) => (
-        <TypeSection key={t.type} t={t} />
+        <TypeSection key={t.type} t={t} fallbackConfigured={view.fallbackConfigured} />
       ))}
     </div>
   );

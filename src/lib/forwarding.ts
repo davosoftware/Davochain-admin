@@ -1,20 +1,19 @@
+import { isIP } from 'node:net';
+
 const MAX_LENGTH = 512;
-const MAX_HOPS = 10;
-const IP_LIKE = /^[0-9A-Fa-f:.]{2,45}$/;
 
 /**
  * The X-Forwarded-For to send on to the API (spec §3.1).
  *
- * Behind Nginx this is "whatever the browser claimed, then the real client".
- * The API trusts only the right-most untrusted entry, so passing it on
- * unchanged is safe. Anything that is not a short list of IP-like entries is
- * dropped rather than forwarded: the API then sees the dashboard's own
- * address, the old shared bucket, instead of something malformed.
+ * Behind Nginx the header reads "whatever the browser claimed, …, the real
+ * client", and the API identifies the client by the right-most untrusted
+ * entry. So only that entry is forwarded: whatever junk a browser puts to its
+ * left can neither reach the API nor knock the real client out of the header
+ * (which would drop everyone into one shared bucket). If the right-most entry
+ * is not a real IP, nothing is forwarded.
  */
 export function forwardedFor(incoming: string | null | undefined): Record<string, string> {
   if (!incoming || incoming.length > MAX_LENGTH) return {};
-  const hops = incoming.split(',').map((s) => s.trim());
-  if (hops.length === 0 || hops.length > MAX_HOPS) return {};
-  if (hops.some((h) => !IP_LIKE.test(h))) return {};
-  return { 'x-forwarded-for': hops.join(', ') };
+  const rightMost = incoming.split(',').pop()?.trim() ?? '';
+  return isIP(rightMost) ? { 'x-forwarded-for': rightMost } : {};
 }

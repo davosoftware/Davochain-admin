@@ -2,7 +2,7 @@
 
 import { API_BASE } from '@/lib/api';
 import { clientForwardHeaders } from '@/lib/client-ip';
-import { authFailureMessage } from '@/lib/auth-errors';
+import { authFailureMessage, inviteCheckFailure } from '@/lib/auth-errors';
 
 /**
  * Accepting an invitation, for somebody who is not signed in.
@@ -17,6 +17,8 @@ export interface InviteCheck {
   email?: string;
   name?: string;
   role?: 'OWNER' | 'SUB_ADMIN';
+  /** Set only when the check was throttled or the API was unavailable: the link may still be good. */
+  error?: string;
 }
 
 const messageOf = (data: unknown, fallback: string): string => {
@@ -38,7 +40,9 @@ export async function checkInvite(token: string): Promise<InviteCheck> {
       headers: await clientForwardHeaders(),
       cache: 'no-store',
     });
-    if (!res.ok) return { valid: false };
+    if (!res.ok) {
+      return inviteCheckFailure(res.status, await res.json().catch(() => null), res.headers.get('retry-after'));
+    }
     return (await res.json()) as InviteCheck;
   } catch {
     return { valid: false };

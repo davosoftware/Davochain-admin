@@ -27,3 +27,11 @@ test('every other failure keeps the caller fallback, so login never says more th
     assert.equal(authFailureMessage(status, { message: 'Too many failed attempts. Try again after X' }, '60', LOGIN), LOGIN);
   }
 });
+
+test('an invite check that was throttled or hit an outage says so, instead of "invalid link"', async () => {
+  const { inviteCheckFailure } = await import('./auth-errors.ts');
+  assert.deepEqual(inviteCheckFailure(429, null, '120'), { valid: false, error: 'Too many attempts. Try again in 120 seconds.' });
+  assert.deepEqual(inviteCheckFailure(503, null, null), { valid: false, error: 'Temporarily unavailable. Try again shortly.' });
+  assert.deepEqual(inviteCheckFailure(404, { message: 'x' }, null), { valid: false });
+  assert.deepEqual(inviteCheckFailure(400, null, null), { valid: false });
+});

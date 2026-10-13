@@ -47,6 +47,23 @@ export function InviteForm({ token, invite }: { token: string; invite: InviteChe
       router.push(`/login?invited=${encodeURIComponent(result.email!)}`);
     });
 
+  if (!invite.valid && invite.error) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="border-warning/30 bg-warning/10 flex items-start gap-2 rounded-md border p-3 text-sm">
+          <AlertCircle className="text-warning mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">We could not check this invitation just now.</p>
+            <p className="text-muted-foreground mt-1">{invite.error} Your link may still be good.</p>
+          </div>
+        </div>
+        <Button variant="outline" className="w-full" onClick={() => router.refresh()}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
   if (!invite.valid) {
     return (
       <div className="flex flex-col gap-4">

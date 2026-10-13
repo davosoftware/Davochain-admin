@@ -35,3 +35,14 @@ export function authFailureMessage(status: number, body: unknown, retryAfter: st
   }
   return fallback;
 }
+
+/**
+ * An invite check that failed. Only a 429 or 503 carries a reason: then the
+ * link may be perfectly good and the person should simply try again. Any
+ * other failure stays "this invitation cannot be used", with no detail, so a
+ * guessed token learns nothing.
+ */
+export function inviteCheckFailure(status: number, body: unknown, retryAfter: string | null): { valid: false; error?: string } {
+  if (status === 429 || status === 503) return { valid: false, error: authFailureMessage(status, body, retryAfter, '') };
+  return { valid: false };
+}

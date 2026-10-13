@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3100",
     "build": "next build",
-    "start": "next start -p 3100",
+    "start": "next start -H 127.0.0.1 -p 3100",
     "lint": "eslint",
     "test": "node --test \"src/**/*.test.ts\"",
     "sync-tinymce": "node scripts/sync-tinymce.mjs",
