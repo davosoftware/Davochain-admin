@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start -p 3100",
     "lint": "eslint",
+    "test": "node --test \"src/**/*.test.ts\"",
     "sync-tinymce": "node scripts/sync-tinymce.mjs",
     "predev": "node scripts/sync-tinymce.mjs",
     "prebuild": "node scripts/sync-tinymce.mjs"
