@@ -27,7 +27,8 @@ export async function reviewKyc(
   try {
     await api(`/v1/admin/kyc/${userId}/review`, {
       method: 'POST',
-      body: JSON.stringify({ approve, tier: approve ? 'TIER_1' : undefined, reason }),
+      // No tier: Basic (TIER_1) is decided through basic-decision; this route is for later tiers.
+      body: JSON.stringify({ approve, reason }),
     });
     revalidatePath('/kyc');
     return { ok: true };

@@ -1,3 +1,5 @@
+import type { BasicReviewRow } from './types-admin';
+
 /**
  * Response shapes from the API.
  *
@@ -100,6 +102,12 @@ export interface PendingKyc {
   bvnLast4: string | null;
   ninLast4: string | null;
   submittedAt: string | null;
-  user: { email: string; firstName: string; lastName: string };
+  user: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    /** The latest Basic verification waiting for identity review, if any. */
+    kycVerifications?: BasicReviewRow[];
+  };
   documents: { id: string; type: string; status: string; uploadedAt: string }[];
 }

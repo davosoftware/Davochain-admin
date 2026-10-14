@@ -728,3 +728,125 @@ export interface AlertRecipientsView {
     recipients: AlertRecipientRow[];
   }>;
 }
+
+// ── Basic verification, compliance review and Dojah (API Tasks 10–13) ──
+
+export type MatchField = 'MATCH' | 'MISMATCH' | 'SKIPPED';
+
+/** The latest IDENTITY_REVIEW verification on a pending KYC row. Never the raw BVN/NIN. */
+export interface BasicReviewRow {
+  id: string;
+  idType: 'BVN' | 'NIN';
+  idLast4: string;
+  typedFirstName: string;
+  typedMiddleName: string | null;
+  typedLastName: string;
+  typedDateOfBirth: string;
+  typedAddress: { street?: string; city?: string; state?: string; lga?: string; postcode?: string; stateOfOrigin?: string };
+  recordFirstName: string | null;
+  recordMiddleName: string | null;
+  recordLastName: string | null;
+  recordDateOfBirth: string | null;
+  recordGender: string | null;
+  recordUsable: boolean | null;
+  match: { matched: boolean; swapped: boolean; fields: { firstName: MatchField; lastName: MatchField; middleName: MatchField; dateOfBirth: MatchField } } | null;
+  reviewReason: string | null;
+  createdAt: string;
+  screening: { status: string } | null;
+}
+
+export interface ComplianceCaseRow {
+  id: string;
+  status: string;
+  category: string;
+  priority: 'CRITICAL' | 'HIGH' | 'NORMAL';
+  possible: boolean;
+  riskLevel: string | null;
+  createdAt: string;
+  proposedBy: string | null;
+  user: { id: string; firstName: string; lastName: string; email: string; amlStatus: string } | null;
+}
+
+export interface AmlMatchView {
+  name: string | null;
+  aliases: string[];
+  dateOfBirth: string | null;
+  country: string | null;
+  positions: string[];
+  sourceType: string | null;
+  score: number | null;
+  articles: { title: string; url: string }[];
+}
+
+export interface ComplianceCaseDetail {
+  case: {
+    id: string;
+    userId: string;
+    screeningId: string;
+    status: string;
+    category: string;
+    priority: 'CRITICAL' | 'HIGH' | 'NORMAL';
+    possible: boolean;
+    riskLevel: string | null;
+    entityId: string | null;
+    rescreenCount: number;
+    rescreenResult: string | null;
+    proposedBy: string | null;
+    proposedAt: string | null;
+    proposalReason: string | null;
+    confirmedBy: string | null;
+    confirmedAt: string | null;
+    decidedBy: string | null;
+    decidedAt: string | null;
+    reason: string | null;
+    reportedToAuthority: boolean | null;
+    reportReference: string | null;
+    reportedAt: string | null;
+    createdAt: string;
+  };
+  user: { id: string; firstName: string; lastName: string; email: string; amlStatus: string } | null;
+  screening: {
+    status: string;
+    matchStatus: string | null;
+    riskLevel: string | null;
+    entityId: string | null;
+    inputs: { names?: string; date_of_birth?: string; gender?: string; nationality?: string };
+    matches: AmlMatchView[] | null;
+    sendCount: number;
+    possibleDuplicateCharge: boolean;
+  } | null;
+  verification: {
+    idType: string;
+    idLast4: string;
+    typedFirstName: string;
+    typedMiddleName: string | null;
+    typedLastName: string;
+    typedDateOfBirth: string;
+    recordFirstName: string | null;
+    recordMiddleName: string | null;
+    recordLastName: string | null;
+    recordDateOfBirth: string | null;
+    recordGender: string | null;
+  } | null;
+  eligibility: { canConfirm: boolean; why: string | null };
+}
+
+export interface DojahReadiness {
+  ready: boolean;
+  enabled: boolean;
+  checkedAt: string;
+  checks: { key: string; ok: boolean; required: boolean; detail: string }[];
+  balance: { naira: number | null; minimum: number; warnAt: number | null; asOf: string | null };
+  observed: { peakHour7d: number; peakDay7d: number };
+}
+
+export interface DojahUnknownCall {
+  kind: 'LOOKUP' | 'AML';
+  id: string;
+  userId: string;
+  at: string;
+  outcome: string;
+  possiblyCharged: boolean;
+  possibleDuplicateCharge: boolean;
+  entityId: string | null;
+}
