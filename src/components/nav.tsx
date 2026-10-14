@@ -31,6 +31,8 @@ import {
   Sliders,
   Wallet,
   MailWarning,
+  ShieldAlert,
+  Fingerprint,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -127,6 +129,7 @@ const groups: { label: string; items: NavItem[] }[] = [
     items: [
       { href: '/users', label: 'Users', icon: Users, permission: 'users.view' },
       { href: '/kyc', label: 'KYC review', icon: ShieldCheck, permission: 'kyc.view' },
+      { href: '/compliance', label: 'Compliance review', icon: ShieldAlert, permission: 'compliance.view' },
     ],
   },
   {
@@ -210,6 +213,7 @@ const groups: { label: string; items: NavItem[] }[] = [
         icon: MailWarning,
         permission: 'alerts.manage',
       },
+      { href: '/system/dojah', label: 'Dojah', icon: Fingerprint, permission: 'settings.manage' },
       {
         href: '/system/credentials',
         label: 'API keys',

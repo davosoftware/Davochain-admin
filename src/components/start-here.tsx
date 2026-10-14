@@ -25,6 +25,7 @@ const DESTINATIONS: { href: string; label: string; blurb: string; permission: st
   { href: '/fees', label: 'Fee claims', blurb: 'What is waiting to be swept', permission: 'claims.view' },
   { href: '/users', label: 'Users', blurb: 'Accounts and balances', permission: 'users.view' },
   { href: '/kyc', label: 'KYC review', blurb: 'Submissions awaiting a decision', permission: 'kyc.view' },
+  { href: '/compliance', label: 'Compliance review', blurb: 'AML matches awaiting a decision', permission: 'compliance.view' },
   { href: '/system/notifications', label: 'Notifications', blurb: 'Send a message to users', permission: 'notifications.send' },
   { href: '/transactions', label: 'Transactions', blurb: 'Every trade and transfer', permission: 'transactions.view' },
   { href: '/audit', label: 'Audit log', blurb: 'Every admin action', permission: 'audit.view' },

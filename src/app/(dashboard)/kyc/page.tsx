@@ -4,6 +4,7 @@ import type { PendingKyc } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { KycActions } from '@/components/kyc-actions';
+import { KycBasicReview } from '@/components/kyc-basic-review';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { relativeTime } from '@/lib/utils';
@@ -26,7 +27,7 @@ export default async function KycPage() {
     <>
       <PageHeader
         title="KYC review"
-        description="Approving unlocks trading. It also signs the user out, so the new tier takes effect immediately rather than whenever their token expires."
+        description="Basic verifications that need a person: the typed details beside the BVN/NIN record. Accepting an identity sends the person on to Compliance review if their AML screening was not clear. Approval signs the user out, so the new level takes effect at once."
       />
 
       {rows.length === 0 ? (
@@ -43,7 +44,7 @@ export default async function KycPage() {
         <div className="flex flex-col gap-3">
           {rows.map((row) => (
             <Card key={row.id}>
-              <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
+              <CardContent className="flex flex-wrap items-start justify-between gap-4 p-5">
                 <div className="min-w-0">
                   <p className="font-medium">
                     {row.user.firstName} {row.user.lastName}
@@ -64,7 +65,11 @@ export default async function KycPage() {
                     ) : null}
                   </div>
                 </div>
-                <KycActions userId={row.userId} name={row.user.firstName} />
+                {row.user.kycVerifications?.[0] ? (
+                  <KycBasicReview userId={row.userId} name={row.user.firstName} row={row.user.kycVerifications[0]} />
+                ) : (
+                  <KycActions userId={row.userId} name={row.user.firstName} />
+                )}
               </CardContent>
             </Card>
           ))}
