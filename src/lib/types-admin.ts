@@ -752,6 +752,8 @@ export interface BasicReviewRow {
   match: { matched: boolean; swapped: boolean; fields: { firstName: MatchField; lastName: MatchField; middleName: MatchField; dateOfBirth: MatchField } } | null;
   reviewReason: string | null;
   createdAt: string;
+  /** The verification state; only IDENTITY_REVIEW is decided on the KYC page. */
+  state?: string;
   screening: { status: string } | null;
 }
 

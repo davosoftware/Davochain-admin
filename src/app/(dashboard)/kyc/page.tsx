@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { KycActions } from '@/components/kyc-actions';
 import { KycBasicReview } from '@/components/kyc-basic-review';
+import { basicFlowLabel } from '@/lib/compliance';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { relativeTime } from '@/lib/utils';
@@ -65,8 +66,11 @@ export default async function KycPage() {
                     ) : null}
                   </div>
                 </div>
-                {row.user.kycVerifications?.[0] ? (
+                {row.user.kycVerifications?.[0] && (row.user.kycVerifications[0].state ?? 'IDENTITY_REVIEW') === 'IDENTITY_REVIEW' ? (
                   <KycBasicReview userId={row.userId} name={row.user.firstName} row={row.user.kycVerifications[0]} />
+                ) : row.user.kycVerifications?.[0] ? (
+                  // In the Basic flow but not waiting on identity: decided elsewhere, never with the old buttons.
+                  <Badge variant="outline">{basicFlowLabel(row.user.kycVerifications[0].state ?? '')}</Badge>
                 ) : (
                   <KycActions userId={row.userId} name={row.user.firstName} />
                 )}

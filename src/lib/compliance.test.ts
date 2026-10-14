@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { comparison, decisionsFor, formatNaira, reasonLabel } from './compliance.ts';
+import { basicFlowLabel, comparison, decisionsFor, formatNaira, reasonLabel, safeHref } from './compliance.ts';
 
 test('sanctions cases offer only the two sanctions decisions', () => {
   assert.deepEqual(decisionsFor('SANCTIONS', 'OPEN'), ['SANCTIONS_CONFIRMED', 'SANCTIONS_FALSE_POSITIVE']);
@@ -41,4 +41,20 @@ test('an unusable record with no match result shows every field as a mismatch, n
 test('naira formats with the sign and separators, and unknown is a dash', () => {
   assert.equal(formatNaira(152000), '₦152,000.00');
   assert.equal(formatNaira(null), '—');
+});
+
+test('final review: only http(s) links from Dojah become clickable', () => {
+  assert.equal(safeHref('https://news.example/a'), 'https://news.example/a');
+  assert.equal(safeHref('http://news.example/a'), 'http://news.example/a');
+  assert.equal(safeHref('javascript:alert(1)'), null);
+  assert.equal(safeHref('JavaScript:alert(1)'), null);
+  assert.equal(safeHref('data:text/html,hi'), null);
+  assert.equal(safeHref('not a url'), null);
+  assert.equal(safeHref(''), null);
+});
+
+test('final review I4: a Basic verification outside identity review reads as in the Basic flow', () => {
+  assert.equal(basicFlowLabel('COMPLIANCE_REVIEW'), 'In Basic verification: compliance review');
+  assert.equal(basicFlowLabel('LOOKED_UP'), 'In Basic verification: AML screening running');
+  assert.equal(basicFlowLabel('CREATED'), 'In Basic verification: checking the number');
 });

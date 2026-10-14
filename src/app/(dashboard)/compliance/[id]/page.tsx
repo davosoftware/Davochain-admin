@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
 import { getToken, readClaims } from '@/lib/session';
 import type { ComplianceCaseDetail } from '@/lib/types-admin';
-import { CATEGORY_LABEL, comparison } from '@/lib/compliance';
+import { CATEGORY_LABEL, comparison, safeHref } from '@/lib/compliance';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { ComplianceDecision } from '@/components/compliance-decision';
@@ -134,12 +134,12 @@ export default async function ComplianceCasePage({ params }: { params: Promise<{
                     <ul className="mt-2 list-disc pl-5">
                       {m.articles.map((a, j) => (
                         <li key={j}>
-                          {a.url ? (
-                            <a href={a.url} target="_blank" rel="noreferrer noopener" className="text-primary hover:underline">
+                          {safeHref(a.url) ? (
+                            <a href={safeHref(a.url)!} target="_blank" rel="noreferrer noopener" className="text-primary hover:underline">
                               {a.title || a.url}
                             </a>
                           ) : (
-                            a.title
+                            <span>{a.title || a.url}</span>
                           )}
                         </li>
                       ))}

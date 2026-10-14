@@ -53,3 +53,25 @@ export function formatNaira(n: number | null): string {
   if (n === null || !Number.isFinite(n)) return '—';
   return '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+/** Only http(s) links from a provider become clickable; anything else (javascript:, data:) is shown as text. */
+export function safeHref(url: string): string | null {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+const FLOW_STEP: Record<string, string> = {
+  CREATED: 'checking the number',
+  LOOKED_UP: 'AML screening running',
+  COMPLIANCE_REVIEW: 'compliance review',
+  IDENTITY_REVIEW: 'identity review',
+};
+
+/** For a pending KYC row whose Basic verification is not waiting on identity review. */
+export function basicFlowLabel(state: string): string {
+  return `In Basic verification: ${FLOW_STEP[state] ?? state.toLowerCase().replaceAll('_', ' ')}`;
+}
