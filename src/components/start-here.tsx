@@ -20,7 +20,7 @@ const DESTINATIONS: { href: string; label: string; blurb: string; permission: st
   { href: '/withdrawal-fees', label: 'Withdrawal fee', blurb: 'What we add to a send-out', permission: 'fees.view' },
   { href: '/ngn-withdrawal-fees', label: 'Naira withdrawal fee', blurb: 'Cashing out to a bank', permission: 'fees.view' },
   { href: '/system/general', label: 'General settings', blurb: 'What the website says', permission: 'settings.manage' },
-  { href: '/system/kyc-limits', label: 'KYC limits', blurb: 'What each tier may move', permission: 'kyc.view' },
+  { href: '/system/levels', label: 'Verification levels', blurb: 'What None, Basic and Advanced may do', permission: 'levels.view' },
   { href: '/system/credentials', label: 'API keys', blurb: 'Partner secrets', permission: 'credentials.manage' },
   { href: '/fees', label: 'Fee claims', blurb: 'What is waiting to be swept', permission: 'claims.view' },
   { href: '/users', label: 'Users', blurb: 'Accounts and balances', permission: 'users.view' },

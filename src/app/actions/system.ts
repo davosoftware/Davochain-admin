@@ -4,33 +4,12 @@ import { revalidatePath } from 'next/cache';
 import { api, ApiError, isRedirect } from '@/lib/api';
 import type {
   CredentialsView,
-  KycTierLimit,
   NgnInFlight,
   NgnWithdrawalsState,
 } from '@/lib/types-admin';
 
 const message = (err: unknown, fallback: string) =>
   err instanceof ApiError ? err.message : fallback;
-
-export async function saveKycLimits(input: {
-  tier: string;
-  ngnDepositSingle: string;
-  ngnDepositDaily: string;
-  ngnWithdrawSingle: string;
-  ngnWithdrawDaily: string;
-}): Promise<{ limits?: KycTierLimit[]; error?: string }> {
-  try {
-    const limits = await api<KycTierLimit[]>('/v1/admin/kyc-limits', {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    });
-    revalidatePath('/system/kyc-limits');
-    return { limits };
-  } catch (err) {
-    if (isRedirect(err)) throw err;
-    return { error: message(err, 'Could not save those limits') };
-  }
-}
 
 /**
  * The value goes one way.

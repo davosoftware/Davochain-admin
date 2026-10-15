@@ -232,20 +232,6 @@ export interface SiteSettings {
   updatedBy: string | null;
 }
 
-/** GET /v1/admin/kyc-limits — what each tier may move, in naira. */
-export interface KycTierLimit {
-  tier: string;
-  canTrade: boolean;
-  canWithdrawCrypto: boolean;
-  canWithdrawFiat: boolean;
-  ngnDepositSingle: string;
-  ngnDepositDaily: string;
-  ngnWithdrawSingle: string;
-  ngnWithdrawDaily: string;
-  updatedAt: string;
-  updatedBy: string | null;
-}
-
 /**
  * GET /v1/admin/credentials — which partner keys are set.
  *

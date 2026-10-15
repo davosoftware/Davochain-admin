@@ -197,10 +197,10 @@ const groups: { label: string; items: NavItem[] }[] = [
         permission: 'withdrawals.manage',
       },
       {
-        href: '/system/kyc-limits',
-        label: 'KYC limits',
+        href: '/system/levels',
+        label: 'Verification levels',
         icon: ShieldCheck,
-        permission: 'kyc.view',
+        permission: 'levels.view',
       },
       {
         href: '/system/notifications',
