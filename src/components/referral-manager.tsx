@@ -30,12 +30,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn, formatNaira, relativeTime } from '@/lib/utils';
+import { LEVEL_OPTIONS, levelLabel } from '@/lib/levels';
 
-const TIERS = [
-  { value: 'TIER_1', label: 'Tier 1 — BVN or NIN' },
-  { value: 'TIER_2', label: 'Tier 2 — ID and selfie' },
-  { value: 'TIER_3', label: 'Tier 3 — proof of address' },
-];
+const TIERS = LEVEL_OPTIONS;
 
 const STATUSES = [
   { value: '', label: 'All referrals' },
@@ -492,7 +489,7 @@ function ReferralTable({ data }: { data: ReferralsPage }) {
                   </TableCell>
                   <TableCell>
                     <Badge variant={row.referee.kycTier === 'TIER_0' ? 'outline' : 'success'}>
-                      {row.referee.kycTier.replace('TIER_', 'T')}
+                      {levelLabel(row.referee.kycTier)}
                     </Badge>
                   </TableCell>
                   <RewardCell reward={row.referrerReward} />

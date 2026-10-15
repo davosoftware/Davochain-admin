@@ -23,7 +23,7 @@ export function KycActions({ userId, name }: { userId: string; name: string }) {
         toast.error('Could not save the decision', { description: result.error });
         return;
       }
-      toast.success(approve ? `${name} approved to TIER_1` : `${name} rejected`, {
+      toast.success(approve ? `${name} approved as Basic` : `${name} rejected`, {
         description: approve ? 'They can trade once they sign in again.' : reason,
       });
       router.refresh();

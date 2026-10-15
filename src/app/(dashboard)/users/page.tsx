@@ -51,7 +51,7 @@ export default async function UsersPage({
               value={stats.suspended}
               tone={stats.suspended > 0 ? 'warning' : 'default'}
             />
-            <Stat label="Verified" value={stats.verified} hint="TIER_1 or above" />
+            <Stat label="Verified" value={stats.verified} hint="Basic or above" />
             <Stat label="Holding funds" value={stats.withBalance} />
           </CardContent>
         </Card>

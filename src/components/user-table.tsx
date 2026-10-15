@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn, relativeTime } from '@/lib/utils';
+import { levelLabel } from '@/lib/levels';
 
 export function UserTable({
   rows,
@@ -171,7 +172,7 @@ export function UserTable({
                         <Badge
                           variant={row.kycStatus === 'APPROVED' ? 'success' : 'outline'}
                         >
-                          {row.kycTier.replace('TIER_', 'T')}
+                          {levelLabel(row.kycTier)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -238,7 +239,7 @@ export function UserTable({
                               <div>
                                 <p className="eyebrow mb-2">Verification</p>
                                 <dl className="t-small flex flex-col gap-1.5">
-                                  <Row label="Tier" value={info.kyc?.tier ?? 'TIER_0'} />
+                                  <Row label="Level" value={levelLabel(info.kyc?.tier)} />
                                   <Row label="Status" value={info.kyc?.status ?? 'NOT_STARTED'} />
                                   {info.kyc?.bvnLast4 ? (
                                     <Row label="BVN" value={`••••${info.kyc.bvnLast4}`} />
