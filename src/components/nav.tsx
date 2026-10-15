@@ -68,7 +68,8 @@ const groups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Fees',
     items: [
-      { href: '/rates', label: 'Buy & sell rate', icon: Sliders, permission: 'fees.view' },
+      { href: '/rates', label: 'Buy margin', icon: Sliders, permission: 'fees.view' },
+      { href: '/sell-margin', label: 'Sell margin', icon: Sliders, permission: 'fees.view' },
       { href: '/swap-fees', label: 'Swap fee', icon: Repeat, permission: 'fees.view' },
       {
         href: '/withdrawal-fees',

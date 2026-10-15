@@ -27,6 +27,19 @@ const SHAPE: Record<
       return b ? `A $500 buy pays ₦${trimNumber(b.value)} per dollar — ₦${(Number(b.value) * 500).toLocaleString()} in all.` : '';
     },
   },
+  // M11: taken off what Quidax would pay for the coin on a customer's sale.
+  SELL_RATE: {
+    column: 'Sell margin (₦ per $)',
+    prefix: '₦',
+    defaults: [
+      { minAmount: '10', maxAmount: '100', value: '25' },
+      { minAmount: '100', maxAmount: null, value: '20' },
+    ],
+    explain: (bands) => {
+      const b = bandFor(bands, 500);
+      return b ? `A $500 sale gets ₦${trimNumber(b.value)} per dollar less than Quidax pays: ₦${(Number(b.value) * 500).toLocaleString()} margin in all.` : '';
+    },
+  },
   NGN_WITHDRAWAL: {
     column: 'Fee (₦)',
     prefix: '₦',

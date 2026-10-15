@@ -51,7 +51,7 @@ export interface UserStats {
 }
 
 /** The two fees are separate ladders and never share a row. */
-export type FeeKind = 'RATE' | 'SWAP' | 'WITHDRAWAL' | 'NGN_WITHDRAWAL';
+export type FeeKind = 'RATE' | 'SELL_RATE' | 'SWAP' | 'WITHDRAWAL' | 'NGN_WITHDRAWAL';
 
 export interface Band {
   id?: string;
