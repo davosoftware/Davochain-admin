@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE } from '@/lib/session';
+import { SECURITY_HEADERS } from '@/lib/security-headers';
 
 /**
  * Fail closed. Everything needs a session except /login itself.
@@ -9,7 +10,14 @@ import { SESSION_COOKIE } from '@/lib/session';
  * the token; this just avoids rendering a dashboard shell that will 401 on
  * every panel.
  */
+/** M7: every page carries the security headers, whichever way it is answered. */
 export function middleware(request: NextRequest) {
+  const response = route(request);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) response.headers.set(name, value);
+  return response;
+}
+
+function route(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
 

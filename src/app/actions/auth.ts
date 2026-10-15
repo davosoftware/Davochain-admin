@@ -2,7 +2,8 @@
 
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { clearToken, setToken } from '@/lib/session';
+import { clearToken, getToken, setToken } from '@/lib/session';
+import { endServerSession } from '@/lib/logout';
 import { API_BASE } from '@/lib/api';
 import { clientForwardHeaders } from '@/lib/client-ip';
 import { authFailureMessage } from '@/lib/auth-errors';
@@ -54,6 +55,8 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
 }
 
 export async function logout(): Promise<void> {
+  // M7: end the session on the API too, not just the cookie here.
+  await endServerSession(await getToken(), API_BASE);
   await clearToken();
   redirect('/login');
 }
