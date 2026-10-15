@@ -40,6 +40,34 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
     rejectionReason: string | null;
   } | null;
   balances: UserBalance[];
+  /** Where this customer's withdrawals may go (Part 2). Bank numbers are masked. */
+  savedDestinations?: {
+    bankAccounts: SavedBankAccountView[];
+    cryptoAddresses: SavedCryptoAddressView[];
+  };
+}
+
+export interface SavedBankAccountView {
+  id: string;
+  bankCode: string;
+  bankName: string;
+  accountNumberMasked: string;
+  accountName: string;
+  nickname: string | null;
+  usableFrom: string;
+  usableNow: boolean;
+}
+
+export interface SavedCryptoAddressView {
+  id: string;
+  assetCode: string;
+  networkId: string;
+  networkLabel: string;
+  address: string;
+  destinationTag: string | null;
+  nickname: string | null;
+  usableFrom: string;
+  usableNow: boolean;
 }
 
 export interface UserStats {

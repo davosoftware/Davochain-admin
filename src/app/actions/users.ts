@@ -43,6 +43,23 @@ export async function reinstateUser(userId: string): Promise<{ ok?: true; error?
   }
 }
 
+/** An admin removes a customer's saved withdrawal destination; the customer is emailed the reason. */
+export async function removeSavedDestination(
+  userId: string,
+  kind: 'bank' | 'crypto',
+  id: string,
+  reason: string,
+): Promise<{ ok?: true; error?: string }> {
+  try {
+    const path = kind === 'bank' ? 'bank-accounts' : 'crypto-addresses';
+    await api(`/v1/admin/users/${userId}/${path}/${id}`, { method: 'DELETE', body: JSON.stringify({ reason }) });
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: err instanceof ApiError ? err.message : 'Could not remove it' };
+  }
+}
+
 export async function sendBroadcast(input: {
   title: string;
   body: string;

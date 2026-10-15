@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { changeSummary, fieldError } from './level-rules.ts';
+import { capError, changeSummary, fieldError } from './level-rules.ts';
 
 const view = (maxPerDay: string | null, allowed = true) => ({
   actions: [{ action: 'GIFTCARD_SELL', label: 'sell gift cards', unit: 'NGN' }],
@@ -21,4 +21,18 @@ test('a field error is shown next to the field', () => {
   assert.equal(fieldError({ minPerTx: null, maxPerTx: '50', maxPerDay: '10' }), 'The maximum per transaction is above the daily maximum.');
   assert.equal(fieldError({ minPerTx: '-1', maxPerTx: null, maxPerDay: null }), 'Amounts cannot be negative.');
   assert.equal(fieldError({ minPerTx: '1', maxPerTx: '5', maxPerDay: '10' }), null);
+});
+
+test('the saved-destination caps are listed in the review', () => {
+  const base = view(null);
+  const before = { ...base, platform: { ...base.platform, maxSavedBankAccounts: 5, maxSavedCryptoAddresses: 10 } };
+  const after = { ...base, platform: { ...base.platform, maxSavedBankAccounts: 3, maxSavedCryptoAddresses: 10 } };
+  assert.deepEqual(changeSummary(before, after), ['Platform · Max saved bank accounts: 5 → 3']);
+});
+
+test('a cap must be a whole number from 1 to 50', () => {
+  assert.equal(capError(0), 'Enter a whole number from 1 to 50.');
+  assert.equal(capError(51), 'Enter a whole number from 1 to 50.');
+  assert.equal(capError(2.5), 'Enter a whole number from 1 to 50.');
+  assert.equal(capError(5), null);
 });

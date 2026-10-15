@@ -24,7 +24,13 @@ export interface LevelsView {
   actions: Array<{ action: string; label: string; unit: string }>;
   rules: LevelRuleView[];
   cooloffs: LevelCooloffView[];
-  platform: { tradingMaxPerDay: string | null; currency: string };
+  platform: {
+    tradingMaxPerDay: string | null;
+    currency: string;
+    /** How many withdrawal destinations a customer may keep (Part 2). */
+    maxSavedBankAccounts?: number;
+    maxSavedCryptoAddresses?: number;
+  };
 }
 
 export const LEVELS: Array<{ level: PolicyLevel; title: string }> = [
@@ -56,6 +62,11 @@ export function fieldError(rule: Pick<LevelRuleView, 'minPerTx' | 'maxPerTx' | '
   if (min != null && max != null && min > max) return 'The minimum is above the maximum per transaction.';
   if (max != null && day != null && max > day) return 'The maximum per transaction is above the daily maximum.';
   return null;
+}
+
+/** A saved-destination cap: a whole number from 1 to 50, as the API checks. */
+export function capError(n: number): string | null {
+  return Number.isInteger(n) && n >= 1 && n <= 50 ? null : 'Enter a whole number from 1 to 50.';
 }
 
 /** What a save would change, one line each, for the review dialog. Empty = nothing changed. */
@@ -100,5 +111,12 @@ export function changeSummary(before: LevelsView, after: LevelsView): string[] {
   const from = money(p0.tradingMaxPerDay, p0.currency);
   const to = money(p1.tradingMaxPerDay, p1.currency);
   if (from !== to) lines.push(`Platform · Max trading per day: ${from} → ${to}`);
+  const caps: Array<['maxSavedBankAccounts' | 'maxSavedCryptoAddresses', string]> = [
+    ['maxSavedBankAccounts', 'Max saved bank accounts'],
+    ['maxSavedCryptoAddresses', 'Max saved crypto addresses'],
+  ];
+  for (const [key, name] of caps) {
+    if (p0[key] !== p1[key]) lines.push(`Platform · ${name}: ${p0[key] ?? '—'} → ${p1[key] ?? '—'}`);
+  }
   return lines;
 }

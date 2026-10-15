@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { cn, relativeTime } from '@/lib/utils';
 import { levelLabel } from '@/lib/levels';
+import { SavedDestinationsList } from '@/components/saved-destinations-list';
 
 export function UserTable({
   rows,
@@ -53,6 +54,12 @@ export function UserTable({
       toast.error('Could not load that user', { description: result.error });
       return;
     }
+    if (result.user) setDetail((d) => ({ ...d, [id]: result.user! }));
+  };
+
+  /** Fresh detail after a change made from inside the panel. */
+  const reload = async (id: string) => {
+    const result = await loadUser(id);
     if (result.user) setDetail((d) => ({ ...d, [id]: result.user! }));
   };
 
@@ -289,6 +296,13 @@ export function UserTable({
                                 )}
                               </div>
                             </div>
+                          ) : null}
+                          {info ? (
+                            <SavedDestinationsList
+                              userId={row.id}
+                              saved={info.savedDestinations}
+                              onChanged={() => reload(row.id)}
+                            />
                           ) : null}
                         </TableCell>
                       </TableRow>

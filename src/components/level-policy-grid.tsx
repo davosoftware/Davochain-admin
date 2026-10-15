@@ -9,6 +9,7 @@ import {
   LEVELS,
   changeSummary,
   fieldError,
+  capError,
   type LevelCooloffView,
   type LevelRuleView,
   type LevelsView,
@@ -140,7 +141,8 @@ export function LevelPolicyGrid({ initial, canEdit }: { initial: LevelsView; can
   const router = useRouter();
 
   const changes = changeSummary(saved, draft);
-  const invalid = draft.rules.some((r) => fieldError(r) !== null);
+  const caps = [draft.platform.maxSavedBankAccounts ?? 5, draft.platform.maxSavedCryptoAddresses ?? 10];
+  const invalid = draft.rules.some((r) => fieldError(r) !== null) || caps.some((c) => capError(c) !== null);
 
   const setRule = (level: string, action: string, patch: Partial<LevelRuleView>) =>
     setDraft((d) => ({
@@ -269,6 +271,40 @@ export function LevelPolicyGrid({ initial, canEdit }: { initial: LevelsView; can
               disabled={!canEdit}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="bg-card border-border/60 rounded-xl border p-5">
+        <h2 className="t-section mb-1">Saved withdrawal destinations</h2>
+        <p className="text-muted-foreground t-caption mb-4">
+          Withdrawals go only to accounts and addresses a customer has saved (with their password). How many each
+          customer may keep. Lowering a number never removes saved ones; it only stops new ones.
+        </p>
+        <div className="grid max-w-xl grid-cols-2 gap-4">
+          {(
+            [
+              ['maxSavedBankAccounts', 'Bank accounts', 5],
+              ['maxSavedCryptoAddresses', 'Crypto addresses', 10],
+            ] as const
+          ).map(([key, label, fallback]) => {
+            const value = draft.platform[key] ?? fallback;
+            const error = capError(value);
+            return (
+              <div key={key} className="grid gap-1">
+                <Label className="t-caption">{label}</Label>
+                <Input
+                  value={String(value)}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, platform: { ...d.platform, [key]: Number(e.target.value.replace(/\D/g, '') || 0) } }))
+                  }
+                  inputMode="numeric"
+                  disabled={!canEdit}
+                  className="h-8 font-mono"
+                />
+                {error ? <p className="text-destructive t-caption">{error}</p> : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 
