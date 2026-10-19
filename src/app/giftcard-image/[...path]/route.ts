@@ -44,12 +44,13 @@ export async function GET(
     headers: {
       'content-type': res.headers.get('content-type') ?? 'application/octet-stream',
       /*
-       * Private, and only for an hour.
+       * Never kept, anywhere (H8).
        *
-       * This is somebody's voucher. It must not sit in a shared cache, and it
-       * should not outlive the session that was allowed to see it by much.
+       * This is somebody's voucher: it must not sit in any cache, shared or
+       * the browser's own, after the session that was allowed to see it.
        */
-      'cache-control': 'private, max-age=3600',
+      'cache-control': 'private, no-store',
+      'x-content-type-options': 'nosniff',
     },
   });
 }

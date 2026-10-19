@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react';
+import { FileText, ShieldCheck } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import type { PendingKyc } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
@@ -9,11 +9,16 @@ import { basicFlowLabel } from '@/lib/compliance';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { relativeTime } from '@/lib/utils';
+import { documentLabel, storageLine, type StorageStatus } from '@/lib/kyc-documents';
 
 export const dynamic = 'force-dynamic';
 
 export default async function KycPage() {
-  const rows = await api<PendingKyc[]>('/v1/admin/kyc/pending').catch((e: ApiError) => e);
+  const [rows, storage] = await Promise.all([
+    api<PendingKyc[]>('/v1/admin/kyc/pending').catch((e: ApiError) => e),
+    api<StorageStatus>('/v1/admin/storage/status').catch(() => null),
+  ]);
+  const files = storageLine(storage);
 
   if (rows instanceof ApiError) {
     return (
@@ -30,6 +35,15 @@ export default async function KycPage() {
         title="KYC review"
         description="Basic verifications that need a person: the typed details beside the BVN/NIN record. Accepting an identity sends the person on to Compliance review if their AML screening was not clear. Approval signs the user out, so the new level takes effect at once."
       />
+
+      <p
+        className={
+          'mb-4 text-sm ' +
+          (files.tone === 'ok' ? 'text-muted-foreground' : files.tone === 'warn' ? 'text-amber-600' : 'text-destructive')
+        }
+      >
+        {files.text}
+      </p>
 
       {rows.length === 0 ? (
         <Card>
@@ -65,6 +79,26 @@ export default async function KycPage() {
                       </span>
                     ) : null}
                   </div>
+                  {row.documents.length > 0 ? (
+                    <ul className="mt-3 flex flex-col gap-1 text-sm">
+                      {row.documents.map((d) => (
+                        <li key={d.id} className="flex items-center gap-2">
+                          <FileText className="text-muted-foreground size-4" />
+                          <span>{documentLabel(d.type)}</span>
+                          <span className="text-muted-foreground text-xs">{relativeTime(d.uploadedAt)}</span>
+                          {/* Opens through this dashboard's server; every opening is recorded. */}
+                          <a
+                            href={`/kyc-document/${d.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary text-xs font-medium underline-offset-2 hover:underline"
+                          >
+                            Open
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
                 {row.user.kycVerifications?.[0] && (row.user.kycVerifications[0].state ?? 'IDENTITY_REVIEW') === 'IDENTITY_REVIEW' ? (
                   <KycBasicReview userId={row.userId} name={row.user.firstName} row={row.user.kycVerifications[0]} />
@@ -82,7 +116,7 @@ export default async function KycPage() {
 
       <p className="text-muted-foreground mt-6 text-sm">
         Only the last four digits of a BVN or NIN are stored — the full value never touches this
-        database.
+        database. Opening a document is recorded in the audit log with your name and the time.
       </p>
     </>
   );
