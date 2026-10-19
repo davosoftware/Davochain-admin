@@ -4,8 +4,8 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Landmark, Loader2, RefreshCw, Users, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
-import { checkAccountName, checkMove, saveTreasurySettings, sendToQuidax } from '@/app/actions/treasury';
-import { coverLine, moveStatusText, naira, type TreasurySnapshot } from '@/lib/treasury';
+import { checkAccountName, checkMove, markMoveFailed, saveTreasurySettings, sendToQuidax } from '@/app/actions/treasury';
+import { checkResultText, coverLine, moveStatusText, naira, type TreasurySnapshot } from '@/lib/treasury';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -218,7 +218,7 @@ function SendCard({ s, isOwner }: { s: TreasurySnapshot; isOwner: boolean }) {
 }
 
 /** Ask the bank about one move now. */
-function CheckNow({ id }: { id: string }) {
+function CheckNow({ id, railName }: { id: string; railName: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   return (
@@ -231,13 +231,44 @@ function CheckNow({ id }: { id: string }) {
         start(async () => {
           const r = await checkMove(id);
           if (r.error) return void toast.error('Could not check', { description: r.error });
-          toast.message(r.status === 'ARRIVED' ? 'Arrived' : r.status === 'FAILED' ? 'Failed: nothing left' : 'Still on its way');
+          toast.message(checkResultText(r, railName));
           router.refresh();
         })
       }
     >
       {pending ? <Loader2 className="size-3.5 animate-spin" /> : null}
       Check with the bank now
+    </Button>
+  );
+}
+
+/**
+ * Owners only: a move the bank still has no record of 30 minutes after it was
+ * sent. The API asks the bank again and refuses if it has any record at all.
+ */
+function MarkFailed({ id, amount, railName }: { id: string; amount: string; railName: string }) {
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      className="text-destructive ml-2"
+      disabled={pending}
+      onClick={() =>
+        start(async () => {
+          if (!globalThis.confirm(`Mark this ${naira(amount)} move as failed? Only do this if ${railName} has no record of it. We will ask ${railName} once more first.`)) return;
+          const password = askPassword('mark this move as failed');
+          if (!password) return;
+          const r = await markMoveFailed(id, password);
+          if (r.error) return void toast.error('Not marked as failed', { description: r.error });
+          toast.success('Marked as failed. You can send a new move.');
+          router.refresh();
+        })
+      }
+    >
+      {pending ? <Loader2 className="size-3.5 animate-spin" /> : null}
+      Mark as failed
     </Button>
   );
 }
@@ -307,7 +338,8 @@ export function TreasuryBoard({ s, banks, isOwner }: { s: TreasurySnapshot; bank
                   <TableCell className="t-small">
                     <Badge variant={m.status === 'ARRIVED' ? 'success' : m.status === 'FAILED' ? 'destructive' : 'outline'}>{moveStatusText(m.status)}</Badge>
                     {m.failureReason ? <span className="text-muted-foreground t-caption ml-2">{m.failureReason}</span> : null}
-                    {m.status === 'SENDING' || m.status === 'CHECKING' ? <CheckNow id={m.id} /> : null}
+                    {m.status === 'SENDING' || m.status === 'CHECKING' ? <CheckNow id={m.id} railName={s.rail.name} /> : null}
+                    {m.canMarkFailed ? <MarkFailed id={m.id} amount={m.amount} railName={s.rail.name} /> : null}
                   </TableCell>
                 </TableRow>
               ))}

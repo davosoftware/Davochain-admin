@@ -23,6 +23,8 @@ export interface TreasurySnapshot {
     createdBy: string;
     createdAt: string;
     completedAt: string | null;
+    /** Open for over 30 minutes: offer "Mark as failed" (the API asks the bank again first). */
+    canMarkFailed?: boolean;
   }>;
 }
 
@@ -41,6 +43,16 @@ export function coverLine(s: Pick<TreasurySnapshot, 'covered' | 'owed' | 'spare'
   return s.covered === 'YES'
     ? `✓ Covered: we hold ${naira(held)}; customers are owed ${naira(s.owed)} (${naira(s.spare ?? 0)} spare).`
     : `⚠ Short by ${naira(s.shortBy ?? 0)}: customers are owed ${naira(s.owed)}; we hold ${naira(held)}.`;
+}
+
+/** What "Check with the bank now" found, in plain words. */
+export function checkResultText(r: { status?: string; noRecord?: boolean }, railName = 'The bank'): string {
+  if (r.status === 'ARRIVED') return 'Arrived';
+  if (r.status === 'FAILED') return 'Failed: nothing left';
+  if (r.noRecord) {
+    return `${railName} has no record of this move. If it is still missing 30 minutes after it was sent, an owner can mark it as failed.`;
+  }
+  return 'Still on its way';
 }
 
 export function moveStatusText(status: TreasurySnapshot['moves'][number]['status']): string {

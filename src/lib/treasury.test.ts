@@ -30,3 +30,14 @@ test('every move status has words', () => {
   assert.equal(moveStatusText('ARRIVED'), 'Arrived');
   assert.equal(moveStatusText('FAILED'), 'Failed (nothing left)');
 });
+
+test('"Check with the bank now" says plainly when the bank has no record', async () => {
+  const { checkResultText } = await import('./treasury.ts');
+  assert.equal(checkResultText({ status: 'ARRIVED', noRecord: false }), 'Arrived');
+  assert.equal(checkResultText({ status: 'FAILED', noRecord: false }), 'Failed: nothing left');
+  assert.equal(checkResultText({ status: 'SENDING', noRecord: false }), 'Still on its way');
+  assert.equal(
+    checkResultText({ status: 'SENDING', noRecord: true }, 'Flutterwave'),
+    'Flutterwave has no record of this move. If it is still missing 30 minutes after it was sent, an owner can mark it as failed.',
+  );
+});

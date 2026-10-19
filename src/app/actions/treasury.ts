@@ -48,13 +48,25 @@ export async function sendToQuidax(amount: number, password: string): Promise<{ 
 }
 
 /** Ask the bank about one move now, instead of waiting for the 10-minute re-check. */
-export async function checkMove(id: string): Promise<{ status?: string; error?: string }> {
+export async function checkMove(id: string): Promise<{ status?: string; noRecord?: boolean; error?: string }> {
   try {
-    const r = await api<{ status: string }>(`/v1/admin/treasury/moves/${encodeURIComponent(id)}/check`, { method: 'POST' });
+    const r = await api<{ status: string; noRecord: boolean }>(`/v1/admin/treasury/moves/${encodeURIComponent(id)}/check`, { method: 'POST' });
     revalidatePath('/treasury');
     return r;
   } catch (err) {
     if (isRedirect(err)) throw err;
     return { error: message(err, 'Could not check it') };
+  }
+}
+
+/** Owners only, with the password: a move the bank has no record of after 30 minutes (the API asks the bank again first). */
+export async function markMoveFailed(id: string, password: string): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api(`/v1/admin/treasury/moves/${encodeURIComponent(id)}/mark-failed`, { method: 'POST', body: JSON.stringify({ password }) });
+    revalidatePath('/treasury');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: message(err, 'Could not mark it as failed') };
   }
 }
