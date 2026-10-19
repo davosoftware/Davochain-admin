@@ -851,9 +851,12 @@ export interface DojahReadiness {
   ready: boolean;
   enabled: boolean;
   checkedAt: string;
-  checks: { key: string; ok: boolean; required: boolean; detail: string }[];
+  /** fix: what to do when a check fails, in plain words. */
+  checks: { key: string; ok: boolean; required: boolean; detail: string; fix?: string }[];
   balance: { naira: number | null; minimum: number; warnAt: number | null; asOf: string | null };
   observed: { peakHour7d: number; peakDay7d: number };
+  /** What applies now, and whether each value was set on the Dojah screen or is the server default. */
+  settings: import('./dojah').DojahSettings;
 }
 
 export interface DojahUnknownCall {
