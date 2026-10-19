@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   ArrowLeftRight,
+  Landmark,
   ArrowUpFromLine,
   Banknote,
   Bell,
@@ -56,6 +57,7 @@ const groups: { label: string; items: NavItem[] }[] = [
     label: 'Watch',
     items: [
       { href: '/', label: 'Overview', icon: LayoutDashboard, permission: 'overview.view' },
+      { href: '/treasury', label: 'Treasury', icon: Landmark, permission: 'treasury.view' },
       { href: '/inventory', label: 'Inventory desk', icon: Wallet, permission: 'inventory.view' },
       {
         href: '/reconciliation',
