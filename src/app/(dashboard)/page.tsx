@@ -101,7 +101,7 @@ export default async function OverviewPage({
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="t-display">Dashboard</h1>
+          <h1 className="t-display">Overview</h1>
           <p className="text-muted-foreground t-body mt-1">Welcome back to Davochain</p>
         </div>
         <DateRangeFilter from={from} to={to} />
@@ -130,10 +130,10 @@ export default async function OverviewPage({
       ) : null}
 
       <div className="flex flex-col gap-5">
-        {/* The treasury, first, because it is the thing that stops trading. */}
+        {/* Stock and naira for buys, first, because running out is what stops trading. */}
         {level ? (
           <WalletCard
-            title="Treasury"
+            title="Stock and naira for buys"
             subtitle="What keeps buys settling"
             icon={Fuel}
             tone={daysOfCover !== null && daysOfCover < 3 ? 'rose' : 'amber'}
@@ -163,7 +163,7 @@ export default async function OverviewPage({
           />
         ) : deskFailed ? (
           // Asked for and failed. One panel is missing, not the whole page.
-          <ErrorState title="Could not load the treasury" detail={deskFailed.message} />
+          <ErrorState title="Could not load stock and naira for buys" detail={deskFailed.message} />
         ) : null}
 
         {/* People. */}
