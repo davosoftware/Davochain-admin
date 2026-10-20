@@ -48,9 +48,13 @@ export async function confirmReset(input: {
   email: string;
   code: string;
   newPassword: string;
-}): Promise<{ ok?: true; error?: string }> {
+}): Promise<{ ok?: true; error?: string; signInRequired?: boolean }> {
   const { ok, status, retryAfter, data } = await post('/v1/admin/auth/reset/confirm', input);
   if (!ok) return { error: authFailureMessage(status, data, retryAfter, messageOf(data, 'Could not reset your password')) };
+
+  // M7: with two-step sign-in on, a reset changes the password but does not
+  // sign in: they sign in afresh with the new password and their code.
+  if ((data as { signInRequired?: boolean }).signInRequired) return { ok: true, signInRequired: true };
 
   // A completed reset signs them in — they have just proved control of the
   // inbox and set a password, and asking them to type it again is friction

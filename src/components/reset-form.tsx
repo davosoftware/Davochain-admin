@@ -57,6 +57,12 @@ export function ResetForm({ onCancel }: { onCancel: () => void }) {
         setError(result.error);
         return;
       }
+      if (result.signInRequired) {
+        // M7: two-step is on, so the reset did not sign them in.
+        router.replace('/login?reason=' + encodeURIComponent('Password changed. Sign in with your new password and your code.'));
+        router.refresh();
+        return;
+      }
       // The reset signs them in, so go straight to the dashboard.
       router.replace('/');
       router.refresh();

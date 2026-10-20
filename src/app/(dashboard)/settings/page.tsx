@@ -10,6 +10,8 @@ import { ErrorState } from '@/components/error-state';
 import { ProfileCard } from '@/components/profile-card';
 import { PasswordCard } from '@/components/password-card';
 import { SessionsCard } from '@/components/sessions-card';
+import { TwoStepCard } from '@/components/two-step-card';
+import type { TwoStepStatus } from '@/app/actions/two-step';
 import { TeamCard } from '@/components/team-card';
 import { Card, CardContent } from '@/components/ui/card';
 import { relativeTime } from '@/lib/utils';
@@ -43,6 +45,7 @@ export default async function SettingsPage() {
     api<AdminActivity[]>('/v1/admin/me/activity?limit=12').catch(() => [] as AdminActivity[]),
     api<AdminSessionRow[]>('/v1/admin/me/sessions').catch(() => [] as AdminSessionRow[]),
   ]);
+  const twoStep = await api<TwoStepStatus>('/v1/admin/me/two-step').catch(() => null);
 
   return (
     <>
@@ -59,6 +62,7 @@ export default async function SettingsPage() {
       <div className="grid max-w-3xl gap-5">
         <ProfileCard profile={me} />
         <PasswordCard changedAt={me.passwordChangedAt} />
+        {twoStep ? <TwoStepCard status={twoStep} email={me.email} isOwner={me.role === 'OWNER'} canManageTeam={canManageTeam} /> : null}
         <SessionsCard sessions={sessions} idleTimeoutMs={me.idleTimeoutMs} />
 
         {canManageTeam ? (

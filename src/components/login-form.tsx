@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
 import { ResetForm } from '@/components/reset-form';
+import { TwoStepLogin } from '@/components/two-step-login';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -41,7 +42,27 @@ function SignedOutReason({ reason }: { reason?: string }) {
   );
 }
 
+/**
+ * M7: going back from the second step (or a sign-in that expired) starts the
+ * form afresh: a new key remounts it, which clears the step it was on.
+ */
 export function LoginForm({ reason, invited }: { reason?: string; invited?: string }) {
+  const [attempt, setAttempt] = useState(0);
+  const [backReason, setBackReason] = useState<string | undefined>(undefined);
+  return (
+    <LoginBody
+      key={attempt}
+      reason={backReason ?? reason}
+      invited={invited}
+      onBackToPassword={(why) => {
+        setBackReason(why);
+        setAttempt((n) => n + 1);
+      }}
+    />
+  );
+}
+
+function LoginBody({ reason, invited, onBackToPassword }: { reason?: string; invited?: string; onBackToPassword: (why?: string) => void }) {
   const [state, formAction] = useActionState<LoginState, FormData>(login, {});
   const [resetting, setResetting] = useState(false);
 
@@ -75,7 +96,9 @@ export function LoginForm({ reason, invited }: { reason?: string; invited?: stri
             </div>
           ) : null}
 
-          {resetting ? (
+          {state.step ? (
+            <TwoStepLogin step={state.step} sentTo={state.sentTo ?? ''} delivered={state.delivered !== false} onBack={onBackToPassword} />
+          ) : resetting ? (
             <ResetForm onCancel={() => setResetting(false)} />
           ) : (
             <form action={formAction} className="flex flex-col gap-4">
