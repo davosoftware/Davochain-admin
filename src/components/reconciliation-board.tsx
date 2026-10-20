@@ -147,7 +147,8 @@ export function ReconciliationBoard({
   const [correcting, setCorrecting] = useState<{ asset: string; customer: Customer } | null>(null);
   const [deciding, startDecide] = useTransition();
 
-  const broken = rows.filter((r) => !r.withinTolerance || r.partial);
+  // A2: a run that read only some customers is normal at scale; only a real difference needs attention.
+  const broken = rows.filter((r) => !r.withinTolerance);
 
   const showCustomers = async (asset: string, force = false) => {
     if (open === asset && !force) return setOpen(null);
@@ -228,7 +229,7 @@ export function ReconciliationBoard({
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">{formatCoin(row.heldInSubAccounts)}</TableCell>
                       <TableCell className="pr-5 text-right">
-                        <Button size="sm" variant={!row.withinTolerance || row.partial ? 'default' : 'ghost'} onClick={() => showCustomers(row.asset)}>
+                        <Button size="sm" variant={!row.withinTolerance ? 'default' : 'ghost'} onClick={() => showCustomers(row.asset)}>
                           {loading === row.asset ? <Loader2 className="size-3.5 animate-spin" /> : null}
                           {open === row.asset ? 'Hide customers' : 'See customers'}
                         </Button>

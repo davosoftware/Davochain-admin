@@ -5,6 +5,9 @@ export interface DriftRowLike {
   drift: string;
   withinTolerance: boolean;
   partial: boolean;
+  /** A2: customers read this run, and holding in all. */
+  customersChecked?: number;
+  customersHolding?: number;
 }
 
 export type MismatchReason = 'BEING_CHECKED' | 'IN_PROGRESS' | 'UNEXPLAINED' | 'UNREADABLE';
@@ -57,12 +60,16 @@ function plain(amount: string): string {
 
 export function coinSummary(row: DriftRowLike): string {
   const coin = row.asset.toUpperCase();
-  if (row.partial) return `${coin}: some accounts couldn't be read this time, so this can't say money is missing. Check again.`;
-  if (row.withinTolerance || Number(row.drift) === 0) return `${coin} matches: our records and Quidax agree.`;
+  // A2: a run that read only some customers compares exactly those, so what it finds still counts.
+  const scope = row.partial && row.customersChecked !== undefined ? `${row.customersChecked} of ${row.customersHolding ?? '?'} customers checked this run` : null;
+  if (row.withinTolerance || Number(row.drift) === 0) {
+    return scope ? `${coin} matches for the ${scope} (the rest are checked in turn).` : `${coin} matches: our records and Quidax agree.`;
+  }
   const n = plain(row.drift);
-  return row.drift.startsWith('-')
-    ? `${coin}: Quidax holds ${n} more than our records say customers own.`
-    : `${coin}: our records say customers own ${n} more than Quidax holds for them.`;
+  const text = row.drift.startsWith('-')
+    ? `${coin}: Quidax holds ${n} more than our records say customers own`
+    : `${coin}: our records say customers own ${n} more than Quidax holds for them`;
+  return scope ? `${text} (among the ${scope}).` : `${text}.`;
 }
 
 /**

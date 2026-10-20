@@ -10,7 +10,10 @@ test('each coin is summed up in plain words', () => {
   assert.equal(coinSummary(row('0')), 'BTC matches: our records and Quidax agree.');
   assert.equal(coinSummary(row('0.002')), 'BTC: our records say customers own 0.002 more than Quidax holds for them.');
   assert.equal(coinSummary(row('-0.5')), 'BTC: Quidax holds 0.5 more than our records say customers own.');
-  assert.equal(coinSummary(row('0.002', true)), "BTC: some accounts couldn't be read this time, so this can't say money is missing. Check again.");
+  // A2: a run that read only some customers still reports what it found for them.
+  const part = (drift: string) => ({ ...row(drift, true), customersChecked: 200, customersHolding: 250 });
+  assert.equal(coinSummary(part('0')), 'BTC matches for the 200 of 250 customers checked this run (the rest are checked in turn).');
+  assert.equal(coinSummary(part('0.002')), 'BTC: our records say customers own 0.002 more than Quidax holds for them (among the 200 of 250 customers checked this run).');
 });
 
 test('the suggested correction makes our record match what Quidax holds', () => {
