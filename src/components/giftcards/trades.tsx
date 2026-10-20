@@ -42,6 +42,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn, formatNaira, relativeTime } from '@/lib/utils';
+import { TIPS } from '@/lib/tips';
+import { InfoTip } from '@/components/info-tip';
 
 const STATUSES = [
   { value: '', label: 'All statuses' },
@@ -143,11 +145,13 @@ export function GiftCardTrades({
           value={data.waiting.toLocaleString()}
           hint={data.waiting ? 'cards nobody has decided yet' : 'nothing in the queue'}
           tone={data.waiting > 0 ? 'warning' : undefined}
+          tip={TIPS.giftCards.waiting}
         />
         <Figure
           label="Paid out"
           value={formatNaira(data.totals.creditedNgn)}
           hint="credited to sellers"
+          tip={TIPS.giftCards.paidOut}
         />
         {/*
           * Can be negative — a card cleared below the rate quoted lost money,
@@ -158,6 +162,7 @@ export function GiftCardTrades({
           value={formatNaira(data.totals.profitNgn)}
           hint="what cards cleared at, less what was quoted"
           tone={Number(data.totals.profitNgn) < 0 ? 'destructive' : 'success'}
+          tip={TIPS.giftCards.margin}
         />
       </div>
 
@@ -358,15 +363,20 @@ function Figure({
   value,
   hint,
   tone,
+  tip,
 }: {
   label: string;
   value: string;
   hint: string;
   tone?: 'warning' | 'success' | 'destructive';
+  tip: string;
 }) {
   return (
     <div className="bg-card border-border/60 rounded-xl border p-4">
-      <p className="eyebrow">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="eyebrow">{label}</p>
+        <InfoTip text={tip} />
+      </div>
       <p
         className={cn(
           't-title mt-1.5 tabular-nums',

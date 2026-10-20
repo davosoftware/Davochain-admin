@@ -12,16 +12,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { relativeTime } from '@/lib/utils';
+import { TIPS } from '@/lib/tips';
+import { InfoTip } from '@/components/info-tip';
 
 const askPassword = (what: string) => globalThis.prompt(`To ${what}, type your password.`);
 const digits = (v: string) => v.replace(/\D/g, '');
 
-function Figure({ icon: Icon, title, value, help }: { icon: typeof Wallet; title: string; value: string; help: string }) {
+function Figure({ icon: Icon, title, value, help, tip }: { icon: typeof Wallet; title: string; value: string; help: string; tip: string }) {
   return (
     <div className="bg-card border-border/60 rounded-xl border p-5">
       <div className="text-muted-foreground flex items-center gap-2">
         <Icon className="size-4" />
         <p className="t-small">{title}</p>
+        <InfoTip text={tip} />
       </div>
       <p className="t-display mt-2 font-mono">{value}</p>
       <p className="text-muted-foreground t-caption mt-1">{help}</p>
@@ -298,14 +301,16 @@ export function TreasuryBoard({ s, banks, isOwner }: { s: TreasurySnapshot; bank
           title={`Naira at ${s.rail.name}`}
           value={s.rail.available === null ? '—' : naira(s.rail.available)}
           help={s.rail.error ?? 'Where customer deposits land and customer withdrawals are paid from.'}
+          tip={TIPS.treasury.rail}
         />
         <Figure
           icon={Wallet}
           title="Naira at Quidax"
           value={s.quidaxNgn === null ? '—' : naira(s.quidaxNgn)}
           help={s.quidaxNgn === null ? "We couldn't read the Quidax naira balance." : 'Used to buy coins when our stock runs low.'}
+          tip={TIPS.treasury.quidax}
         />
-        <Figure icon={Users} title="Customers are owed" value={naira(s.owed)} help="All customers' naira balances added together, including amounts on their way out." />
+        <Figure icon={Users} title="Customers are owed" value={naira(s.owed)} help="All customers' naira balances added together, including amounts on their way out." tip={TIPS.treasury.owed} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">

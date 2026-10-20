@@ -3,6 +3,7 @@ import type { ClaimableRow } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { Stat } from '@/components/stat';
+import { TIPS } from '@/lib/tips';
 import { ClaimButton } from '@/components/claim-button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -45,20 +46,22 @@ export default async function FeesPage() {
 
       <Card className="mb-6">
         <CardContent className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-4">
-          <Stat label="Accrued at charge" value={formatUsd(accrued)} hint="what the books expect" />
+          <Stat label="Accrued at charge" value={formatUsd(accrued)} hint="what the books expect" tip={TIPS.fees.accrued} />
           <Stat
             label="Worth now"
             value={formatUsd(current)}
             hint="what claiming today realises"
+            tip={TIPS.fees.worthNow}
             tone={drift < -2 ? 'warning' : 'default'}
           />
           <Stat
             label="Drift"
             value={formatPercent(drift)}
             hint="held in coin until claimed"
+            tip={TIPS.fees.drift}
             tone={drift < 0 ? 'warning' : 'success'}
           />
-          <Stat label="Upstream calls" value={calls} hint="throttled, runs in the background" />
+          <Stat label="Upstream calls" value={calls} hint="throttled, runs in the background" tip={TIPS.fees.calls} />
         </CardContent>
       </Card>
 

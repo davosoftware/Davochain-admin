@@ -3,6 +3,7 @@ import type { FuelLevel, InventoryRow } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { Stat } from '@/components/stat';
+import { TIPS } from '@/lib/tips';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -47,14 +48,16 @@ export default async function InventoryPage() {
               label="Naira fuel"
               value={formatNaira(fuel.balanceNgn, 0)}
               hint="funds the fallback swap"
+              tip={TIPS.inventory.nairaFuel}
               tone={Number(fuel.daysOfCover) < 3 ? 'warning' : 'success'}
             />
-            <Stat label="Days of cover" value={fuel.daysOfCover} hint="at the current burn" />
-            <Stat label="Coins tracked" value={rows.length} />
+            <Stat label="Days of cover" value={fuel.daysOfCover} hint="at the current burn" tip={TIPS.inventory.daysOfCover} />
+            <Stat label="Coins tracked" value={rows.length} tip={TIPS.inventory.coinsTracked} />
             <Stat
               label="Below floor"
               value={rows.filter((r) => r.belowFloor).length}
               tone={rows.some((r) => r.belowFloor) ? 'warning' : 'success'}
+              tip={TIPS.inventory.belowFloor}
             />
           </CardContent>
         </Card>

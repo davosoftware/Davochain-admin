@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { CountUp } from '@/components/count-up';
+import { InfoTip } from '@/components/info-tip';
 import { cn } from '@/lib/utils';
 
 export type Tile = 'blue' | 'green' | 'amber' | 'rose' | 'violet';
@@ -48,6 +49,7 @@ export function StatCard({
   hint,
   icon,
   tone,
+  tip,
   className,
 }: {
   label: string;
@@ -55,6 +57,8 @@ export function StatCard({
   hint?: string;
   icon: LucideIcon;
   tone: Tile;
+  /** What the figure means, behind an "i". */
+  tip?: string;
   className?: string;
 }) {
   return (
@@ -65,7 +69,10 @@ export function StatCard({
       )}
     >
       <div className="min-w-0">
-        <p className="text-muted-foreground t-small">{label}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-muted-foreground t-small">{label}</p>
+          {tip ? <InfoTip text={tip} /> : null}
+        </div>
         <p className="t-figure mt-2 truncate">
           <CountUp value={value} />
         </p>
@@ -85,16 +92,21 @@ export function SplitStatCard({
   parts,
   icon,
   tone,
+  tip,
 }: {
   label: string;
   parts: { label: string; value: string | number }[];
   icon: LucideIcon;
   tone: Tile;
+  tip?: string;
 }) {
   return (
     <div className="bg-card border-border/60 rounded-xl border p-5">
       <div className="flex items-start justify-between gap-4">
-        <p className="text-muted-foreground t-small">{label}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-muted-foreground t-small">{label}</p>
+          {tip ? <InfoTip text={tip} /> : null}
+        </div>
         <IconTile icon={icon} tone={tone} />
       </div>
       <div
@@ -129,12 +141,15 @@ export function WalletCard({
   columns = 3,
   action,
   footer,
+  tip,
 }: {
   title: string;
   subtitle?: string;
   icon: LucideIcon;
   tone: Tile;
-  stats: { label: string; value: string; hint?: string }[];
+  /** Each figure may carry its own "i"; `tip` explains the card as a whole. */
+  stats: { label: string; value: string; hint?: string; tip?: string }[];
+  tip?: string;
   /** How many across on a wide screen. Pick the one that fills the last row. */
   columns?: 2 | 3 | 4;
   /** A way through to the screen these figures are summarised from. */
@@ -147,7 +162,10 @@ export function WalletCard({
       <div className="flex items-center gap-3">
         <IconTile icon={icon} tone={tone} />
         <div className="min-w-0">
-          <h2 className="t-section">{title}</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="t-section">{title}</h2>
+            {tip ? <InfoTip text={tip} /> : null}
+          </div>
           {subtitle ? (
             <p className="text-muted-foreground t-caption mt-0.5">{subtitle}</p>
           ) : null}
@@ -158,7 +176,10 @@ export function WalletCard({
       <div className={cn('mt-5 grid gap-3 sm:grid-cols-2', wide)}>
         {stats.map((stat) => (
           <div key={stat.label} className="border-border/60 bg-background/60 rounded-lg border p-3.5">
-            <p className="text-muted-foreground t-caption">{stat.label}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-muted-foreground t-caption">{stat.label}</p>
+              {stat.tip ? <InfoTip text={stat.tip} /> : null}
+            </div>
             <p className="t-title mt-1.5 truncate">
               <CountUp value={stat.value} />
             </p>
@@ -184,10 +205,12 @@ export function PanelCard({
   action,
   children,
   className,
+  tip,
 }: {
   title: string;
   icon: LucideIcon;
   tone: Tile;
+  tip?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
@@ -196,7 +219,10 @@ export function PanelCard({
     <div className={cn('bg-card border-border/60 flex flex-col rounded-xl border', className)}>
       <div className="flex items-center gap-3 p-5 pb-4">
         <IconTile icon={icon} tone={tone} size="sm" />
-        <h2 className="t-section flex-1">{title}</h2>
+        <div className="flex flex-1 items-center gap-1.5">
+          <h2 className="t-section">{title}</h2>
+          {tip ? <InfoTip text={tip} /> : null}
+        </div>
         {action}
       </div>
       {children}

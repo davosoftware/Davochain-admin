@@ -31,6 +31,8 @@ import {
 } from '@/components/ui/table';
 import { cn, formatNaira, relativeTime } from '@/lib/utils';
 import { LEVEL_OPTIONS, levelLabel } from '@/lib/levels';
+import { TIPS } from '@/lib/tips';
+import { InfoTip } from '@/components/info-tip';
 
 const TIERS = LEVEL_OPTIONS;
 
@@ -70,6 +72,7 @@ function Totals({ settings, data }: { settings: ReferralSettings; data: Referral
         value={formatNaira(data.totals.paidNgn)}
         hint={`${data.totals.paidCount} reward${data.totals.paidCount === 1 ? '' : 's'} credited`}
         icon={Gift}
+        tip={TIPS.referrals.paidOut}
       />
       {/*
         * Deliberately not added to the one beside it. Paid is money that has
@@ -82,12 +85,14 @@ function Totals({ settings, data }: { settings: ReferralSettings; data: Referral
         hint={`${data.totals.pendingCount} waiting on a condition`}
         icon={Loader2}
         muted
+        tip={TIPS.referrals.pending}
       />
       <Figure
         label="Referrals"
         value={data.total.toLocaleString()}
         hint={`${data.rows.filter((r) => r.status === 'COMPLETED').length} completed on this page`}
         icon={TrendingUp}
+        tip={TIPS.referrals.referrals}
       />
       <Figure
         label="Programme"
@@ -99,6 +104,7 @@ function Totals({ settings, data }: { settings: ReferralSettings; data: Referral
         }
         icon={ShieldCheck}
         tone={settings.isEnabled ? 'success' : 'muted'}
+        tip={TIPS.referrals.programme}
       />
     </div>
   );
@@ -111,6 +117,7 @@ function Figure({
   icon: Icon,
   muted,
   tone,
+  tip,
 }: {
   label: string;
   value: string;
@@ -118,6 +125,7 @@ function Figure({
   icon: typeof Gift;
   muted?: boolean;
   tone?: 'success' | 'muted';
+  tip: string;
 }) {
   return (
     <div className="bg-card border-border/60 rounded-xl border p-4">
@@ -129,6 +137,7 @@ function Figure({
           )}
         />
         <p className="eyebrow">{label}</p>
+        <InfoTip text={tip} />
       </div>
       <p className="t-title mt-1.5 tabular-nums">{value}</p>
       <p className="text-muted-foreground t-caption mt-1 leading-tight">{hint}</p>

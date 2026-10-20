@@ -16,6 +16,7 @@ import type { DriftRow, FuelLevel, InventoryRow, AdminTransaction } from '@/lib/
 import type { AdminMe, OverviewSnapshot } from '@/lib/types-admin';
 import { StartHere } from '@/components/start-here';
 import { DateRangeFilter } from '@/components/date-range-filter';
+import { TIPS } from '@/lib/tips';
 import { ErrorState } from '@/components/error-state';
 import { StatusBadge } from '@/components/status-badge';
 import {
@@ -143,21 +144,25 @@ export default async function OverviewPage({
                 label: 'Naira fuel',
                 value: formatNaira(level.balanceNgn, 0),
                 hint: `${level.daysOfCover} days of cover`,
+                tip: TIPS.overview.nairaFuel,
               },
               {
                 label: 'Daily burn',
                 value: formatNaira(level.dailyBurnNgn, 0),
                 hint: 'fallback swaps, 7-day average',
+                tip: TIPS.overview.dailyBurn,
               },
               {
                 label: 'Coins below floor',
                 value: String(low.length),
                 hint: low.length ? low.map((r) => r.asset.toUpperCase()).join(', ') : 'all stocked',
+                tip: TIPS.overview.coinsBelowFloor,
               },
               {
                 label: 'Margin forgone',
                 value: formatNaira(marginLost, 0),
                 hint: 'per day, running on fallback',
+                tip: TIPS.overview.marginForgone,
               },
             ]}
           />
@@ -174,6 +179,7 @@ export default async function OverviewPage({
             hint="every account ever registered"
             icon={Users}
             tone="blue"
+            tip={TIPS.overview.totalUsers}
           />
           <StatCard
             label="Total Active Users"
@@ -181,6 +187,7 @@ export default async function OverviewPage({
             hint="can sign in and trade"
             icon={UserCheck}
             tone="green"
+            tip={TIPS.overview.activeUsers}
           />
           <StatCard
             label="Suspended Users"
@@ -188,11 +195,13 @@ export default async function OverviewPage({
             hint={snapshot?.users.suspended ? 'cannot sign in' : 'nobody suspended'}
             icon={UserX}
             tone="rose"
+            tip={TIPS.overview.suspendedUsers}
           />
           <SplitStatCard
             label="KYC"
             icon={ShieldCheck}
             tone="green"
+            tip={TIPS.overview.kyc}
             parts={[
               { label: 'Approved', value: snapshot?.users.kycApproved ?? '—' },
               { label: 'Pending', value: snapshot?.users.kycPending ?? '—' },
@@ -205,6 +214,7 @@ export default async function OverviewPage({
           label="Transactions"
           icon={ArrowLeftRight}
           tone="blue"
+          tip={TIPS.overview.transactions}
           parts={[
             { label: 'Total', value: snapshot?.transactions.total ?? '—' },
             { label: 'Buys', value: snapshot?.transactions.buys ?? '—' },
@@ -223,6 +233,7 @@ export default async function OverviewPage({
           <WalletCard
             title="NGN Wallet"
             subtitle="Naira in, out and held"
+            tip={TIPS.overview.ngnWallet}
             icon={Wallet}
             tone="blue"
             stats={[
@@ -258,6 +269,7 @@ export default async function OverviewPage({
           <WalletCard
             title="Crypto Wallet"
             subtitle="Every coin movement in dollars, priced when it happened"
+            tip={TIPS.overview.cryptoWallet}
             icon={Coins}
             tone="green"
             columns={3}
@@ -300,6 +312,7 @@ export default async function OverviewPage({
         <WalletCard
           title="Earnings"
           subtitle="What the platform kept, in the currency it was charged in"
+          tip={TIPS.overview.earnings}
           icon={PiggyBank}
           tone="violet"
           columns={3}
@@ -349,6 +362,7 @@ export default async function OverviewPage({
           {canSeeDesk ? (
           <PanelCard
             title="Inventory needing attention"
+            tip={TIPS.overview.inventoryPanel}
             icon={Wallet}
             tone="amber"
             className="lg:col-span-3"
@@ -406,6 +420,7 @@ export default async function OverviewPage({
 
           <PanelCard
             title="Recent activity"
+            tip={TIPS.overview.recentActivity}
             icon={ArrowLeftRight}
             tone="violet"
             // Takes the whole row when the inventory panel beside it is hidden,

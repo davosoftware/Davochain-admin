@@ -3,6 +3,7 @@ import type { UserListRow, UserStats } from '@/lib/types-admin';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { Stat } from '@/components/stat';
+import { TIPS } from '@/lib/tips';
 import { UserTable } from '@/components/user-table';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -44,15 +45,16 @@ export default async function UsersPage({
       {stats ? (
         <Card className="mb-5">
           <CardContent className="grid grid-cols-2 gap-6 p-5 lg:grid-cols-5">
-            <Stat label="Registered" value={stats.total} />
-            <Stat label="Active" value={stats.active} tone="success" />
+            <Stat label="Registered" value={stats.total} tip={TIPS.users.registered} />
+            <Stat label="Active" value={stats.active} tone="success" tip={TIPS.users.active} />
             <Stat
               label="Suspended"
               value={stats.suspended}
               tone={stats.suspended > 0 ? 'warning' : 'default'}
+              tip={TIPS.users.suspended}
             />
-            <Stat label="Verified" value={stats.verified} hint="Basic or above" />
-            <Stat label="Holding funds" value={stats.withBalance} />
+            <Stat label="Verified" value={stats.verified} hint="Basic or above" tip={TIPS.users.verified} />
+            <Stat label="Holding funds" value={stats.withBalance} tip={TIPS.users.holdingFunds} />
           </CardContent>
         </Card>
       ) : null}
