@@ -17,7 +17,7 @@ export default async function TreasuryPage() {
   const header = (
     <PageHeader
       title="Treasury"
-      description="Is there enough naira to cover what customers own? This shows our naira at the naira rail (Flutterwave) and at Quidax against what customers are owed, the payout reserve, and lets an owner send naira to Quidax for buying coins."
+      description="Is there enough naira to cover what customers own? This shows our naira at the naira rail (Payrep) and at Quidax against what customers are owed, the payout reserve, and lets an owner send naira to Quidax for buying coins."
     />
   );
 
