@@ -121,13 +121,14 @@ export interface AdvancedReviewRow {
   idType: string | null;
   addressKind: string | null;
   documents: { id: string; type: string; mimeType: string }[];
+  /** null when the customer's verified Basic record can't be read: decide from the files. */
   verified: {
     firstName: string;
     middleName: string | null;
     lastName: string;
     dateOfBirth: string;
     address: { street: string | null; city: string | null; state: string | null };
-  };
+  } | null;
   /** A minimal summary kept by the API: never the ID photo, a full number, or the document's text. */
   findings: {
     id?: { firstName: string | null; middleName: string | null; lastName: string | null; dateOfBirth: string | null; expiry: string | null; documentName: string | null; valid: boolean };

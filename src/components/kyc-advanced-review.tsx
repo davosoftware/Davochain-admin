@@ -29,7 +29,8 @@ export function KycAdvancedReview({ row, thresholds }: { row: AdvancedReviewRow;
   const [pending, start] = useTransition();
   const router = useRouter();
   const name = row.user ? `${row.user.firstName} ${row.user.lastName}` : 'This customer';
-  const v = row.verified;
+  // Missing only if the Basic record can't be read; the table then shows dashes.
+  const v = row.verified ?? { firstName: '—', middleName: null, lastName: '', dateOfBirth: '—', address: { street: null, city: null, state: null } };
   const f = row.findings;
   const basicAddress = [v.address.street, v.address.city, v.address.state].filter(Boolean).join(', ');
 
