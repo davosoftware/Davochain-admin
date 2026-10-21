@@ -1,6 +1,8 @@
-import { FileText, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, FileText, ShieldCheck } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
-import type { PendingKyc } from '@/lib/types';
+import type { AdvancedQueue, PendingKyc } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { KycActions } from '@/components/kyc-actions';
@@ -14,10 +16,20 @@ import { documentLabel, storageLine, type StorageStatus } from '@/lib/kyc-docume
 export const dynamic = 'force-dynamic';
 
 export default async function KycPage() {
-  const [rows, storage] = await Promise.all([
+  const [rows, storage, advanced] = await Promise.all([
     api<PendingKyc[]>('/v1/admin/kyc/pending').catch((e: ApiError) => e),
     api<StorageStatus>('/v1/admin/storage/status').catch(() => null),
+    api<AdvancedQueue>('/v1/admin/kyc/advanced').catch(() => null),
   ]);
+  // Advanced checks a rule could not decide live on their own page (spec 2026-10-21 §8).
+  const advancedLink = (
+    <Button variant="outline" size="sm" asChild>
+      <Link href="/kyc/advanced">
+        Advanced checks{advanced ? <Badge variant={advanced.waiting > 0 ? 'warning' : 'outline'}>{advanced.waiting}</Badge> : null}
+        <ArrowRight className="size-3.5" />
+      </Link>
+    </Button>
+  );
   const files = storageLine(storage);
 
   if (rows instanceof ApiError) {
@@ -33,6 +45,7 @@ export default async function KycPage() {
     <>
       <PageHeader
         title="KYC review"
+        action={advancedLink}
         description="Basic verifications that need a person: the typed details beside the BVN/NIN record. Accepting an identity sends the person on to Compliance review if their AML screening was not clear. Approval signs the user out, so the new level takes effect at once."
       />
 

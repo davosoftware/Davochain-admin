@@ -8,9 +8,11 @@ const all = Object.entries(TIPS).flatMap(([page, tips]) =>
 
 test('there is a tip for every page with figure boxes', () => {
   assert.deepEqual(Object.keys(TIPS).sort(), [
+    'dojahAdvanced',
     'fees',
     'giftCards',
     'inventory',
+    'kycAdvanced',
     'overview',
     'referrals',
     'treasury',

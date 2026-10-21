@@ -3,6 +3,8 @@
 export type StorageStatus = { driver: 'memory' | 'r2'; reachable: boolean; bucket: string | null };
 
 const LABELS: Record<string, string> = {
+  NATIONAL_ID: 'National ID (front)',
+  ID_BACK: 'ID (back)',
   PASSPORT: 'Passport',
   DRIVERS_LICENSE: "Driver's licence",
   VOTERS_CARD: "Voter's card",

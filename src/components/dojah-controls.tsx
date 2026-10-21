@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DojahAdvancedCard } from '@/components/dojah-advanced-card';
 
 type NumKey = 'minBalance' | 'lowBalanceWarn' | 'dailyAttempts' | 'totalAttempts';
 
@@ -185,12 +186,13 @@ function CalculatorCard({ canEdit, onUse }: { canEdit: boolean; onUse: (min: num
   const [lookup, setLookup] = useState('');
   const [aml, setAml] = useState('');
   const [days, setDays] = useState('3');
+  const [advanced, setAdvanced] = useState('');
   const [result, setResult] = useState<{ minBalance: number; lowBalanceWarn: number; workings: string[] } | null>(null);
   const [pending, start] = useTransition();
 
   const run = () =>
     start(async () => {
-      const r = await suggestThresholds({ lookupPrice: Number(lookup), amlPrice: Number(aml), leadDays: Number(days) || 3 });
+      const r = await suggestThresholds({ lookupPrice: Number(lookup), amlPrice: Number(aml), leadDays: Number(days) || 3, ...(Number(advanced) > 0 ? { advancedPrice: Number(advanced) } : {}) });
       if (r.error) {
         toast.error('Could not work it out', { description: r.error });
         return;
@@ -207,7 +209,7 @@ function CalculatorCard({ canEdit, onUse }: { canEdit: boolean; onUse: (min: num
       <p className="text-muted-foreground t-caption mt-1 mb-4">
         Type Dojah&apos;s prices from your contract or invoice. We use your busiest hour and busiest day of the last 7 days.
       </p>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="grid gap-1">
           <Label className="t-caption">Price per BVN/NIN check (₦)</Label>
           <Input value={lookup} onChange={(e) => setLookup(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="font-mono" />
@@ -215,6 +217,10 @@ function CalculatorCard({ canEdit, onUse }: { canEdit: boolean; onUse: (min: num
         <div className="grid gap-1">
           <Label className="t-caption">Price per screening (₦)</Label>
           <Input value={aml} onChange={(e) => setAml(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" className="font-mono" />
+        </div>
+        <div className="grid gap-1">
+          <Label className="t-caption">Price per Advanced check (₦, optional)</Label>
+          <Input value={advanced} onChange={(e) => setAdvanced(e.target.value.replace(/[^d.]/g, ''))} inputMode="decimal" className="font-mono" />
         </div>
         <div className="grid gap-1">
           <Label className="t-caption">Days of warning before running out</Label>
@@ -262,6 +268,7 @@ export function DojahControls({
   return (
     <div className="flex flex-col gap-5">
       <SwitchCard enabled={settings.basicEnabled} source={settings.source.basicEnabled} ready={ready} failing={failing} isOwner={isOwner} />
+      <DojahAdvancedCard settings={settings} ready={ready} failing={failing} isOwner={isOwner} />
       {filled ? (
         <FilledSettingsCard saved={settings} filled={filled} canEdit={canEdit} onClose={() => setFilled(null)} />
       ) : (

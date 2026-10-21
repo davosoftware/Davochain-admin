@@ -1,6 +1,18 @@
 /** Dojah screen helpers: plain words for the checks and the settings (pure, tested). */
 
-export type DojahSettingKey = 'minBalance' | 'lowBalanceWarn' | 'dailyAttempts' | 'totalAttempts' | 'basicEnabled';
+export type DojahSettingKey =
+  | 'minBalance'
+  | 'lowBalanceWarn'
+  | 'dailyAttempts'
+  | 'totalAttempts'
+  | 'basicEnabled'
+  | 'advancedEnabled'
+  | 'advancedDailyAttempts'
+  | 'advancedTotalAttempts'
+  | 'livenessMin'
+  | 'faceMatchPass'
+  | 'faceMatchReview'
+  | 'addressRecencyMonths';
 
 export interface DojahSettings {
   minBalance: number;
@@ -8,11 +20,24 @@ export interface DojahSettings {
   dailyAttempts: number;
   totalAttempts: number;
   basicEnabled: boolean;
+  /** Advanced checks (spec 2026-10-21). Older API builds leave these out. */
+  advancedEnabled?: boolean;
+  advancedDailyAttempts?: number;
+  advancedTotalAttempts?: number;
+  livenessMin?: number;
+  faceMatchPass?: number;
+  faceMatchReview?: number;
+  addressRecencyMonths?: number;
   source: Record<DojahSettingKey, 'screen' | 'server'>;
 }
 
 /** null = go back to the server default. */
 export type DojahSettingsPatch = Partial<Record<'minBalance' | 'lowBalanceWarn' | 'dailyAttempts' | 'totalAttempts', number | null>>;
+
+/** The Advanced numbers an owner can change. null = back to the default. */
+export type AdvancedSettingsPatch = Partial<
+  Record<'advancedDailyAttempts' | 'advancedTotalAttempts' | 'livenessMin' | 'faceMatchPass' | 'faceMatchReview' | 'addressRecencyMonths', number | null>
+>;
 
 /** What each check means. The API sends what to do about a failing one (`fix`). */
 export const CHECK_TEXT: Record<string, { title: string; meaning: string }> = {

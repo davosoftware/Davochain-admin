@@ -111,3 +111,39 @@ export interface PendingKyc {
   };
   documents: { id: string; type: string; status: string; uploadedAt: string }[];
 }
+
+/** One Advanced check waiting for a person (GET /v1/admin/kyc/advanced, spec 2026-10-21 §8). */
+export interface AdvancedReviewRow {
+  id: string;
+  step: 'IDENTITY' | 'ADDRESS';
+  createdAt: string;
+  user: { id: string; firstName: string; lastName: string; email: string } | null;
+  idType: string | null;
+  addressKind: string | null;
+  documents: { id: string; type: string; mimeType: string }[];
+  verified: {
+    firstName: string;
+    middleName: string | null;
+    lastName: string;
+    dateOfBirth: string;
+    address: { street: string | null; city: string | null; state: string | null };
+  };
+  /** A minimal summary kept by the API: never the ID photo, a full number, or the document's text. */
+  findings: {
+    id?: { firstName: string | null; middleName: string | null; lastName: string | null; dateOfBirth: string | null; expiry: string | null; documentName: string | null; valid: boolean };
+    liveness?: { live: boolean; probability: number | null; faceDetected: boolean; multiFace: boolean };
+    match?: { confidence: number | null };
+    noPortrait?: boolean;
+    readAgain?: boolean;
+    address?: { source: 'BILL' | 'TEXT'; name: string; date: string | null; address: string; provider?: string | null };
+  };
+  reviewReasons: string[];
+  docLast4: string | null;
+}
+
+export interface AdvancedQueue {
+  waiting: number;
+  approvedToday: number;
+  rejectedToday: number;
+  rows: AdvancedReviewRow[];
+}

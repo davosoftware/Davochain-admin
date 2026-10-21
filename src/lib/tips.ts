@@ -65,6 +65,20 @@ export const TIPS = {
     margin: 'What accepted cards actually sold for, minus what we paid customers. It goes negative if a card sold below our quote.',
   },
 
+  kycAdvanced: {
+    waiting: 'Advanced checks a rule could not decide. Each shows why it came to a person and the evidence beside the verified Basic record.',
+    approvedToday: 'Advanced checks approved since midnight in Lagos, automatically or by an admin.',
+    rejectedToday: 'Advanced checks rejected since midnight in Lagos. The customer saw a reason and may try again if attempts remain.',
+  },
+
+  dojahAdvanced: {
+    switch: 'Turns the automatic ID, selfie and proof-of-address checks on or off for customers. Owners only.',
+    liveness: 'How sure Dojah must be that the selfie is a real, live face. Under this, a person decides.',
+    faceMatch: 'How alike the selfie and the ID photo must be. At the pass mark or above is approved; from the floor up to the pass mark a person decides; below the floor is rejected.',
+    recency: 'How recent a proof-of-address document must be. A tenancy agreement must instead still be running today.',
+    tries: 'How many times a customer may try each step per day and in total. A check that failed on our side does not count.',
+  },
+
   referrals: {
     paidOut: 'Referral rewards already credited to customers\' naira balances.',
     pending: 'Rewards promised but not paid, because the friend has not met the condition yet (for example, verifying their identity). Some may never be paid.',

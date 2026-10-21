@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { api, ApiError, isRedirect } from '@/lib/api';
-import type { DojahSettingsPatch } from '@/lib/dojah';
+import type { AdvancedSettingsPatch, DojahSettingsPatch } from '@/lib/dojah';
 
 const message = (err: unknown, fallback: string) => (err instanceof ApiError ? err.message : fallback);
 
@@ -35,11 +35,36 @@ export async function suggestThresholds(input: {
   lookupPrice: number;
   amlPrice: number;
   leadDays?: number;
+  advancedPrice?: number;
 }): Promise<{ minBalance?: number; lowBalanceWarn?: number; workings?: string[]; error?: string }> {
   try {
     return await api('/v1/admin/dojah/thresholds', { method: 'POST', body: JSON.stringify(input) });
   } catch (err) {
     if (isRedirect(err)) throw err;
     return { error: message(err, 'Could not work out the numbers') };
+  }
+}
+
+/** Owners only, with their password: the Advanced checks' numbers. null = back to the default. */
+export async function saveAdvancedSettings(patch: AdvancedSettingsPatch, password: string): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api('/v1/admin/dojah/advanced-settings', { method: 'PUT', body: JSON.stringify({ ...patch, password }) });
+    revalidatePath('/system/dojah');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: message(err, 'Could not save the Advanced settings') };
+  }
+}
+
+/** Owners only: Advanced verification on, off, or back to the server default (null). */
+export async function setAdvancedSwitch(enabled: boolean | null, password: string): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api('/v1/admin/dojah/advanced-switch', { method: 'POST', body: JSON.stringify({ enabled, password }) });
+    revalidatePath('/system/dojah');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: message(err, 'Could not change the switch') };
   }
 }
