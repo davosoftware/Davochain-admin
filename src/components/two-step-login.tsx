@@ -32,6 +32,8 @@ export function TwoStepLogin({
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState(codeStepText(step, sentTo, delivered));
   const [codes, setCodes] = useState<string[] | null>(null);
+  // C8: the backup-code file names the admin's real email (an older API sends none: the masked one stands in).
+  const [email, setEmail] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
   const back = () =>
@@ -52,6 +54,7 @@ export function TwoStepLogin({
       const r = await completeTwoStepSetup(code);
       if (r.expired) return void onBack(r.error);
       if (r.error) return void setError(r.error);
+      setEmail(r.email ?? null);
       setCodes(r.backupCodes ?? []);
     });
 
@@ -71,7 +74,7 @@ export function TwoStepLogin({
           <ShieldCheck className="text-success size-5" />
           <h2 className="t-section">Two-step sign-in is on</h2>
         </div>
-        <BackupCodes codes={codes} email={sentTo} />
+        <BackupCodes codes={codes} email={email ?? sentTo} />
         <Button
           onClick={() => {
             router.replace('/');

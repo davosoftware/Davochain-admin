@@ -125,7 +125,7 @@ export async function resendLoginCode(): Promise<{ sentTo?: string; delivered?: 
  * M7: an owner requires two-step; the emailed code switches it on. Signs in and
  * hands back the backup codes, which the screen shows once before going on.
  */
-export async function completeTwoStepSetup(code: string): Promise<{ backupCodes?: string[]; error?: string; expired?: boolean }> {
+export async function completeTwoStepSetup(code: string): Promise<{ backupCodes?: string[]; email?: string; error?: string; expired?: boolean }> {
   const r = await withTicket('/v1/admin/auth/login/setup', { code: code.trim() });
   if (r.expired) {
     (await cookies()).delete(TICKET_COOKIE);
@@ -133,9 +133,9 @@ export async function completeTwoStepSetup(code: string): Promise<{ backupCodes?
   }
   if (!r.ok) return { error: authFailureMessage(r.status, r.data, r.retryAfter, message(r.data, 'That code is not right.')) };
   (await cookies()).delete(TICKET_COOKIE);
-  const { accessToken, backupCodes } = r.data as { accessToken: string; backupCodes: string[] };
+  const { accessToken, backupCodes, email } = r.data as { accessToken: string; backupCodes: string[]; email?: string };
   await setToken(accessToken);
-  return { backupCodes };
+  return { backupCodes, email };
 }
 
 /** M7: "Back to sign in" forgets the waiting sign-in. */
