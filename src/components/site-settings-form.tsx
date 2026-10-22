@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   Globe,
   Image as ImageIcon,
-  Link2,
   Loader2,
   MapPin,
   ShieldAlert,
@@ -22,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-const MAX_LOGO_BYTES = 1024 * 1024;
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 /** Every field, flattened, so dirty-tracking is one comparison rather than ten. */
 type Draft = {
@@ -144,7 +143,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
       return;
     }
     if (file.size > MAX_LOGO_BYTES) {
-      toast.error('That logo is too large', { description: 'The limit is 1 MB.' });
+      toast.error('That logo is too large', { description: 'The limit is 2 MB.' });
       return;
     }
 
@@ -274,7 +273,7 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings }) {
 
         <Card title="Branding" icon={ImageIcon} tone="violet">
           <p className="text-muted-foreground t-caption mb-3">
-            Shown on the website and in the admin header. PNG, JPEG, WebP or SVG, up to 1 MB.
+            Shown on the website and in the admin header. PNG, JPEG, WebP or SVG, up to 2 MB.
           </p>
           <div className="flex items-center gap-4">
             <span className="border-border/60 bg-background flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border">
