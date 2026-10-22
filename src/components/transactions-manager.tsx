@@ -191,7 +191,9 @@ export function TransactionsManager({
       let reason = '';
       if (action === 'reject') {
         const typed = globalThis.prompt(
-          `Why is this ₦${Number(row.total).toLocaleString()} deposit being refused?\n\nThe depositor is shown this exact text.`,
+          row.returnsToSender
+            ? `The ₦${Number(row.total).toLocaleString()} goes back to the account it came from.\n\nReason (the customer sees this):`
+            : `Why is this ₦${Number(row.total).toLocaleString()} deposit being refused?\n\nThe depositor is shown this exact text.`,
         );
         if (!typed?.trim()) return;
         reason = typed.trim();
@@ -228,6 +230,13 @@ export function TransactionsManager({
         toast.error(action === 'release' ? 'Could not release' : 'Could not reject', {
           description: result.error,
         });
+        return;
+      }
+      if (action === 'reject' && row.returnsToSender) {
+        toast.success(`Returning ₦${Number(row.total).toLocaleString()} to the sender`, {
+          description: 'It finishes when Payrep confirms. The customer is told then.',
+        });
+        router.refresh();
         return;
       }
       toast.success(

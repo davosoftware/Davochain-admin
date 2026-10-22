@@ -513,6 +513,8 @@ export interface TxRow {
   withinLimitsNow: boolean | null;
   /** Why it still would not be allowed, when it would not. */
   limitReason: string | null;
+  /** A Payrep bank deposit: rejecting it sends the money back to the account it came from. */
+  returnsToSender?: boolean;
 
   reviewedBy: string | null;
   reviewedAt: string | null;
