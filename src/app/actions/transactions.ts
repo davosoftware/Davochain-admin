@@ -43,6 +43,24 @@ export async function rejectDeposit(
   }
 }
 
+/** Owner only: a held Payrep deposit the team sent back from the Payrep dashboard is closed. */
+export async function markDepositReturned(
+  id: string,
+  note: string,
+): Promise<{ row?: TxRow; error?: string }> {
+  try {
+    const row = await api<TxRow>(`/v1/admin/transactions/${id}/mark-returned`, {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    });
+    revalidatePath('/transactions');
+    return { row };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: message(err, 'Could not mark that deposit returned') };
+  }
+}
+
 /**
  * One CSV cell.
  *

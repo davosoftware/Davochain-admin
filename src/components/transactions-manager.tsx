@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { exportTransactions, rejectDeposit, releaseDeposit } from '@/app/actions/transactions';
+import { exportTransactions, markDepositReturned, rejectDeposit, releaseDeposit } from '@/app/actions/transactions';
 import type { TxPage, TxRow, TxTab } from '@/lib/types-admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -185,6 +185,26 @@ export function TransactionsManager({
   const narrowed = Boolean(search || status || type || amountType || mode || from || to);
   const reset = () =>
     go({ search: null, status: null, type: null, amountType: null, mode: null, from: null, to: null });
+
+  /** The money went back from the Payrep dashboard: an owner closes the deposit so it can't be released later. */
+  const markReturned = (row: TxRow) =>
+    start(async () => {
+      const note = globalThis.prompt(
+        `Mark this ₦${Number(row.total).toLocaleString()} deposit as returned to the sender outside DavoChain?\n\n` +
+          'Only do this after you have sent it back from the Payrep dashboard. The deposit is closed and can no longer be released.\n\n' +
+          'How was it returned (for the team, e.g. the Payrep reference)?',
+      );
+      if (!note?.trim()) return;
+      setDeciding(row.id);
+      const result = await markDepositReturned(row.id, note.trim());
+      setDeciding(null);
+      if (result.error) {
+        toast.error('Could not mark it returned', { description: result.error });
+        return;
+      }
+      toast.success('Deposit closed as returned', { description: 'The customer has been told.' });
+      router.refresh();
+    });
 
   const decide = (row: TxRow, action: 'release' | 'reject') =>
     start(async () => {
@@ -535,6 +555,11 @@ export function TransactionsManager({
                                 <X className="size-3.5" />
                                 Reject
                               </Button>
+                              {row.returnsToSender && (
+                                <Button variant="ghost" size="sm" disabled={busy} onClick={() => markReturned(row)}>
+                                  Mark returned
+                                </Button>
+                              )}
                             </div>
                           ) : (
                             <span className="text-muted-foreground t-caption">
