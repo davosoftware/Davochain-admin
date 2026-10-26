@@ -34,6 +34,7 @@ import {
   MailWarning,
   ShieldAlert,
   Fingerprint,
+  ServerCog,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,8 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   permission: string | null;
+  /** Owners only, whatever permissions a sub-admin holds. */
+  ownerOnly?: boolean;
 }
 
 const groups: { label: string; items: NavItem[] }[] = [
@@ -223,15 +226,24 @@ const groups: { label: string; items: NavItem[] }[] = [
         icon: KeyRound,
         permission: 'credentials.manage',
       },
+      {
+        href: '/system/server-settings',
+        label: 'Server settings',
+        icon: ServerCog,
+        permission: null,
+        ownerOnly: true,
+      },
     ],
   },
 ];
 
 export function Nav({
   permissions,
+  isOwner = false,
   onNavigate,
 }: {
   permissions: string[];
+  isOwner?: boolean;
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
@@ -240,7 +252,9 @@ export function Nav({
   const visible = groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((i) => i.permission === null || held.has(i.permission)),
+      items: group.items.filter((i) =>
+        i.ownerOnly ? isOwner : i.permission === null || held.has(i.permission),
+      ),
     }))
     .filter((group) => group.items.length > 0);
 

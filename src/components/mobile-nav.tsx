@@ -10,9 +10,11 @@ import { cn } from '@/lib/utils';
 export function MobileNav({
   email,
   permissions,
+  isOwner = false,
 }: {
   email: string | null;
   permissions: string[];
+  isOwner?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -39,7 +41,7 @@ export function MobileNav({
               <span className="text-sm font-semibold tracking-tight">Davochain</span>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <Nav permissions={permissions} onNavigate={() => setOpen(false)} />
+              <Nav permissions={permissions} isOwner={isOwner} onNavigate={() => setOpen(false)} />
             </div>
             {email ? (
               <div className="border-sidebar-border border-t px-5 py-3">

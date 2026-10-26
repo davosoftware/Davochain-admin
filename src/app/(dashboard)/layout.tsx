@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <span className="text-sm font-semibold tracking-tight">Davochain</span>
         </div>
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          <Nav permissions={permissions} />
+          <Nav permissions={permissions} isOwner={me?.role === 'OWNER'} />
         </div>
         <div className="border-sidebar-border shrink-0 border-t p-3">
           <Link
@@ -87,7 +87,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="bg-background/80 border-border/70 sticky top-0 z-20 flex h-14 items-center gap-3 border-b px-4 backdrop-blur lg:px-6">
-          <MobileNav email={claims?.email ?? null} permissions={permissions} />
+          <MobileNav email={claims?.email ?? null} permissions={permissions} isOwner={me?.role === 'OWNER'} />
           <div className="flex-1" />
           <ThemeToggle />
           <Button variant="outline" size="sm" asChild>
