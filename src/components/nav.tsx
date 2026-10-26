@@ -35,6 +35,7 @@ import {
   ShieldAlert,
   Fingerprint,
   ServerCog,
+  QrCode,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -136,6 +137,7 @@ const groups: { label: string; items: NavItem[] }[] = [
       { href: '/users', label: 'Users', icon: Users, permission: 'users.view' },
       { href: '/kyc', label: 'KYC review', icon: ShieldCheck, permission: 'kyc.view' },
       { href: '/compliance', label: 'Compliance review', icon: ShieldAlert, permission: 'compliance.view' },
+      { href: '/crypto-addresses', label: 'Crypto addresses', icon: QrCode, permission: 'users.view' },
     ],
   },
   {

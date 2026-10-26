@@ -22,6 +22,7 @@ import {
 import { cn, relativeTime } from '@/lib/utils';
 import { levelLabel } from '@/lib/levels';
 import { SavedDestinationsList } from '@/components/saved-destinations-list';
+import { DepositAddressesList } from '@/components/deposit-addresses-list';
 
 export function UserTable({
   rows,
@@ -303,6 +304,9 @@ export function UserTable({
                               saved={info.savedDestinations}
                               onChanged={() => reload(row.id)}
                             />
+                          ) : null}
+                          {info ? (
+                            <DepositAddressesList addresses={info.depositAddresses} onChanged={() => reload(row.id)} />
                           ) : null}
                         </TableCell>
                       </TableRow>

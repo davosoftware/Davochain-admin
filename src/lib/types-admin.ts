@@ -45,6 +45,19 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
     bankAccounts: SavedBankAccountView[];
     cryptoAddresses: SavedCryptoAddressView[];
   };
+  /** Where this customer RECEIVES crypto (spec 2026-10-26). Not the saved withdrawal addresses above. */
+  depositAddresses?: {
+    id: string;
+    asset: string;
+    network: string;
+    networkLabel: string;
+    status: 'PENDING' | 'ACTIVE' | 'FAILED' | 'DISABLED';
+    address: string | null;
+    destinationTag: string | null;
+    autoCreated: boolean;
+    requestedAt: string;
+    failedAt: string | null;
+  }[];
 }
 
 export interface SavedBankAccountView {
