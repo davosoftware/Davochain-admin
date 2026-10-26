@@ -94,6 +94,15 @@ export interface MarginRow {
   expectedMarginNgn: string;
 }
 
+/** GET /v1/admin/kyc/pending since 26 Oct 2026: one page of the queue and the total. */
+export interface PendingKycPage {
+  items: PendingKyc[];
+  total: number;
+  page: number;
+  pageSize: number;
+  order: 'oldest' | 'newest';
+}
+
 export interface PendingKyc {
   id: string;
   userId: string;

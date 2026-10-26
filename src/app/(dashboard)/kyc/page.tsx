@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, FileText, ShieldCheck } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
-import type { AdvancedQueue, PendingKyc } from '@/lib/types';
+import type { AdvancedQueue, PendingKycPage } from '@/lib/types';
+import { KycQueueToolbar, type KycQueueState } from '@/components/kyc-queue-toolbar';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
@@ -15,9 +16,22 @@ import { documentLabel, storageLine, type StorageStatus } from '@/lib/kyc-docume
 
 export const dynamic = 'force-dynamic';
 
-export default async function KycPage() {
-  const [rows, storage, advanced] = await Promise.all([
-    api<PendingKyc[]>('/v1/admin/kyc/pending').catch((e: ApiError) => e),
+const FORWARDED = ['order', 'page', 'search', 'includeAutomatedTests'] as const;
+
+export default async function KycPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+  for (const key of FORWARDED) {
+    const value = params[key];
+    const single = Array.isArray(value) ? value[0] : value;
+    if (single) query.set(key, single);
+  }
+  const [queue, storage, advanced] = await Promise.all([
+    api<PendingKycPage>(`/v1/admin/kyc/pending?${query}`).catch((e: ApiError) => e),
     api<StorageStatus>('/v1/admin/storage/status').catch(() => null),
     api<AdvancedQueue>('/v1/admin/kyc/advanced').catch(() => null),
   ]);
@@ -32,14 +46,25 @@ export default async function KycPage() {
   );
   const files = storageLine(storage);
 
-  if (rows instanceof ApiError) {
+  if (queue instanceof ApiError) {
     return (
       <>
         <PageHeader title="KYC review" />
-        <ErrorState title="Could not load the review queue" detail={rows.message} />
+        <ErrorState title="Could not load the review queue" detail={queue.message} />
       </>
     );
   }
+
+  const rows = queue.items;
+  const searchParam = Array.isArray(params.search) ? params.search[0] : params.search;
+  const state: KycQueueState = {
+    order: queue.order,
+    page: queue.page,
+    pageSize: queue.pageSize,
+    total: queue.total,
+    search: (searchParam ?? '').trim(),
+    includeAutomatedTests: (Array.isArray(params.includeAutomatedTests) ? params.includeAutomatedTests[0] : params.includeAutomatedTests) === 'true',
+  };
 
   return (
     <>
@@ -58,13 +83,17 @@ export default async function KycPage() {
         {files.text}
       </p>
 
+      <KycQueueToolbar state={state} />
+
       {rows.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16">
             <ShieldCheck className="text-muted-foreground size-8" />
             <p className="text-sm font-medium">Nothing waiting</p>
             <p className="text-muted-foreground text-sm">
-              Submissions appear here as users complete verification.
+              {state.search
+                ? 'No one waiting matches that search.'
+                : 'Submissions appear here as users complete verification.'}
             </p>
           </CardContent>
         </Card>
