@@ -1,5 +1,20 @@
 # Flutter integration
 
+> **Updated 23 October 2026: this page is out of date. Use the API's own documents instead.**
+>
+> - **Start here:** `api/docs/CUSTOMER_JOURNEY_API_GUIDE.md`. One customer through the whole app in order, with real responses captured on 23 Oct: register → email code → Basic verification → sign in again → **naira account number** → money in → crypto deposit address → buy, sell, swap → naira and crypto withdrawals → gift cards → Advanced verification → sign out.
+> - **Postman collection** that saves and refreshes tokens by itself: `api/docs/postman/DavoChain-Customer-Journey.postman_collection.json`.
+> - **Full reference** (every field and error): `api/docs/FLUTTER_API.md`.
+>
+> **What changed since this page was written** (the rest of this page doesn't reflect it):
+> - Naira deposits and payouts **are live** through Payrep, and KYC documents are stored. The "not implemented" notes below are no longer true.
+> - **The naira account number needs no BVN or NIN** (changed later on 23 Oct). It's opened automatically after Basic verification, named after the customer as on their ID (e.g. `DavoChain-ADA CHIOMA OBI`). The app just calls `GET /v1/deposits/ngn/account`: `200` with the number, or `202 {"status":"PENDING"}` for a few seconds while it opens. `POST` needs no body. A push `ngn_account.ready` says when it's ready. Remove any "enter your BVN to get an account" screen.
+> - **Email confirmation:** a 6-digit code is emailed at sign-up. Until it's entered, money, verification and the naira account answer `403 code: "EMAIL_NOT_VERIFIED"`.
+> - **`phone` is required** at sign-up and must be unique.
+> - **Approval signs the customer out:** when Basic verification passes (at once, or by an admin) or an Advanced step passes, every refresh token stops working. Show "You're verified, please sign in again" and go to sign-in.
+> - **Refresh:** the access token lasts 15 minutes; the refresh token lasts 30 days and works **once**. **Save both** new tokens after every refresh. Two refreshes at the same moment: one wins and the other gets `401`. Reusing an already-used refresh token signs out that whole session. Run one refresh at a time.
+> - Withdrawals go only to **saved** bank accounts and addresses (saved with the password), and every money request needs an `Idempotency-Key`.
+
 Everything the app needs, in the order you will build it.
 
 Base URL `https://api.davochain.com/v1`. Locally `http://10.0.2.2:3000/v1` from
@@ -8,6 +23,14 @@ machine's LAN address from a real device.
 
 Every JSON shape on this page was captured from the running API, not written
 from memory. Where a shape looks surprising, it is the shape.
+
+This guide describes the routes currently present; some unfinished product
+flows and implementation mismatches are called out in
+[Flutter API route gaps](FLUTTER_API_ROUTE_GAP_ANALYSIS.md). In particular,
+NGN funding/payout are not implemented, KYC document storage is not wired, and
+the current gift-card request limit conflicts with the documented image sizes.
+Do not treat a planned route in that report as available until it is implemented
+and tested.
 
 ---
 
@@ -160,6 +183,12 @@ GET  /v1/kyc
 POST /v1/kyc/tier1       { bvn | nin, dateOfBirth }   one of bvn/nin, 11 digits
 POST /v1/kyc/documents   { type, storageKey, mimeType, sizeBytes }
 ```
+
+**Document upload is not implemented yet.** The current route only records
+metadata and trusts a client-supplied `storageKey`; there is no object-store
+upload behind it. Do not send an arbitrary key or tell users a document was
+uploaded until the private-storage/upload-intent flow in
+[Flutter API route gaps](FLUTTER_API_ROUTE_GAP_ANALYSIS.md) is implemented.
 
 ### What `GET /v1/kyc` returns
 
@@ -443,6 +472,13 @@ GET  /v1/withdrawals?limit=50
   "youReceive":    "0.01000000" }
 ```
 
+**Implementation caveat:** the current quote reports network fee plus
+platform fee in `totalDeducted`, but the withdrawal submit path locks only the
+amount plus platform fee; if fee lookup fails, the quote currently reports a
+zero network fee. The quote is not yet a reliable debit guarantee. Confirm the
+fee/debit contract with the API owner before presenting this total as final;
+track the fix in [Flutter API route gaps](FLUTTER_API_ROUTE_GAP_ANALYSIS.md).
+
 > **Fees are added on top, not taken out.** `youReceive` equals `amount`, and
 > the balance falls by `totalDeducted`. A UI that shows the fee as a deduction
 > from the amount will be wrong by exactly the fee.
@@ -463,6 +499,10 @@ list is data, and it grows.
 
 ```
 GET /v1/withdrawals/quote/ngn?amount=
+GET /v1/withdrawals/ngn/banks
+POST /v1/withdrawals/ngn/verify-account   TIER_1 { accountNumber, bankCode }
+POST /v1/withdrawals/ngn                   TIER_1, Idempotency-Key
+GET /v1/withdrawals?limit=50               poll/history
 ```
 
 ```json
@@ -488,13 +528,38 @@ change because the exchange rate moved.
 says whether the problem is the tier, this transaction's size, or today's
 running total.
 
-> **`payoutAvailable` is `false` today and will stay false until a payout
-> provider is chosen.** The fee ladder is built and priced; the bank rail is not.
-> `POST` for a naira withdrawal does not exist yet.
->
-> Build the screen against this endpoint anyway — the fee, the limit check and
-> the copy are all final — and gate the submit button on `payoutAvailable`. When
-> the rail lands, one flag flips and the screen works. See `TODO.md`.
+The bank routes use the Quidax main account, not a user's Quidax sub-account.
+The server verifies the account name again when submitting and only returns the
+masked account number after that. Never submit a client-provided account name.
+
+```jsonc
+// GET /v1/withdrawals/ngn/banks
+[{ "code": "100004", "name": "Paycom (Opay)" }]
+
+// POST /v1/withdrawals/ngn/verify-account
+{ "accountNumber": "0123456789", "bankCode": "100004" }
+// → { "accountName": "TEST USER", "accountNumberLast4": "6789", "bankCode": "100004" }
+
+// POST /v1/withdrawals/ngn
+// Idempotency-Key: one UUID per submit tap, reused on retries
+{ "amount": "50000.00", "accountNumber": "0123456789", "bankCode": "100004" }
+// → { "transactionId": "…", "status": "PROCESSING", "asset": "ngn",
+//     "amount": "50000.00", "feeNgn": "100.00", "totalDebited": "50100.00",
+//     "bankName": "Paycom (Opay)", "accountNumberLast4": "6789" }
+```
+
+**Bank lookup, account verification, and payout submission are feature-gated and unavailable by default.**
+`NGN_WITHDRAWALS_ENABLED` defaults to `false`; when it is off, keep the submit
+button disabled because `payoutAvailable` will be false, and do not call the
+bank lookup/verification routes. Operations must enable it only after the
+Quidax main-account NGN reserve, webhook signature, and reconciliation have
+been verified. Quidax's payout fee is reported after submission and is
+currently a treasury cost; `feeNgn` is Davochain's fee.
+
+After submission, poll `GET /v1/withdrawals` for `PROCESSING` or
+`RECONCILING`. `RECONCILING` is not a failure; do not submit a new payout or
+tell the user the balance is lost. A rejection unlocks the funds and appears as
+`FAILED`; success is confirmed from Quidax's `withdraw.successful` event.
 
 ---
 
@@ -759,6 +824,14 @@ and JPEG quality ~80, which lands around 200–400 KB.** That is more than enoug
 to read a serial number, and it is the difference between a submission that
 takes a second and one that takes a minute on Nigerian mobile data. Three raw
 12-megapixel photos are ~15 MB and will simply fail on a poor connection.
+
+**Current server limit caveat:** images are sent as data URLs inside JSON, but
+the API JSON parser currently caps the entire request body at 1 MB. This is
+stricter than the 5 MB per-image validation below, and three 200–400 KB images
+can exceed the request limit after base64 encoding. Until the API adds a
+private upload route or raises/isolates the body limit, keep the total encoded
+request below 1 MB; do not promise that the per-image 5 MB limit is usable from
+Flutter. See [Flutter API route gaps](FLUTTER_API_ROUTE_GAP_ANALYSIS.md).
 
 ```dart
 // flutter_image_compress
@@ -1054,7 +1127,7 @@ is 2, BTC is 8, USDT is 6. Never round for arithmetic, only for the label.
 | Buy / Sell | `POST /quotes` (12s) → `POST /trades` |
 | Swap | `POST /quotes` side=swap → `POST /trades` → poll while `PROCESSING` |
 | Withdraw crypto | `GET /assets/{c}/networks?purpose=withdraw` → `GET /withdrawals/quote` → `POST /withdrawals/crypto` |
-| Withdraw naira | `GET /withdrawals/quote/ngn` → blocked on `payoutAvailable` |
+| Withdraw naira | `GET /withdrawals/quote/ngn` → banks → verify account → `POST /withdrawals/ngn` only when `payoutAvailable` is true |
 | Limits | `GET /kyc` → `limits.current` and `limits.tiers` |
 | Activity | `GET /trades`, `GET /deposits`, `GET /withdrawals` |
 | Alerts | `GET /notifications`, `POST /notifications/read` |
@@ -1108,7 +1181,10 @@ Everything the app can call. Anything not on this list is admin-only.
 | `GET /v1/trades` · `GET /v1/trades/{id}` | bearer | |
 | `GET /v1/withdrawals/quote` | bearer | Crypto fees |
 | `GET /v1/withdrawals/quote/ngn` | bearer | Naira fee + limit |
+| `GET /v1/withdrawals/ngn/banks` | bearer | Quidax-supported Nigerian NGN banks |
+| `POST /v1/withdrawals/ngn/verify-account` | TIER_1 | `{ accountNumber, bankCode }`; returns account name and last four |
 | `POST /v1/withdrawals/crypto` | TIER_1 | Idempotency-Key |
+| `POST /v1/withdrawals/ngn` | TIER_1 | Idempotency-Key; disabled unless `payoutAvailable` is true |
 | `GET /v1/withdrawals` | bearer | |
 
 | | Messages and config | |

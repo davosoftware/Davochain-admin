@@ -9,31 +9,59 @@ it is the only part that cannot be retrofitted for correctness.
 
 ### Naira funding — how money enters a user's NGN balance
 
-**Status:** undecided. Not blocking anything yet.
+**Status:** undecided. This remains the blocker for end-to-end NGN buys.
 
-Users hold an NGN balance (a pure ledger asset, no Quidax counterpart), and buys
-draw from it. Nothing currently funds it, so **buys cannot be tested end to end**
-until this is chosen.
+Users hold an NGN balance in Davochain's ledger; it is not a user Quidax wallet.
+Nothing currently funds it, so **buys cannot be tested end to end** until an
+inbound funding provider is selected and implemented.
 
-Whatever the provider is, it sets four things:
+Whatever the funding provider is, it sets these requirements:
 
 | Needed | For |
 | --- | --- |
-| Account-name lookup | Confirming a bank account before payout |
-| Transfer / payout call | The naira half of withdrawals |
 | Inbound funding | Virtual account, card, or bank transfer to credit a balance |
-| Webhook contract | Confirming or failing both directions |
+| Webhook contract | Confirming or failing inbound deposits |
 
-Their fee also becomes the base your admin-managed withdrawal fee sits on top of.
-
-Candidates: Paystack, Flutterwave, Monnify, or Quidax's own NGN rails.
+Candidates include Paystack, Flutterwave, Monnify, or Quidax Ramp. Evaluate
+settlement finality, chargebacks, reconciliation, fees, and compliance before
+choosing.
 
 **When it lands, build:**
 - [ ] `src/funding/` — provider client behind an interface, so the provider can change
 - [ ] Virtual-account issuance per user (if the provider supports it)
 - [ ] Inbound webhook → credit NGN ledger → notify
-- [ ] Outbound payout → debit under lock → settle on their webhook
-- [ ] Refund path on their failure callback — same discipline as §9: refund only on FAILED
+- [ ] Deposit history metadata that identifies funding method/provider reference
+- [ ] Reconcile duplicate, delayed, and missing provider notifications
+
+### NGN bank payout — Quidax adapter wired, rollout gated
+
+**Status:** the Quidax docs confirm `GET /banks`, `POST /banks/verify_account`,
+and `POST /users/{user_id}/withdraws` for NGN bank payouts. The API now has
+`GET /v1/withdrawals/ngn/banks`, `POST /v1/withdrawals/ngn/verify-account`,
+and an idempotent `POST /v1/withdrawals/ngn`. Submission is disabled by default
+with `NGN_WITHDRAWALS_ENABLED=false` until operational verification is complete.
+
+The payout is sent from the Quidax main account (`user_id=me`), not the user's
+sub-account. Customer NGN is held in Davochain's ledger, so the platform's main
+Quidax NGN balance funds the bank transfer. Quidax returns its fee and stamp
+duty after withdrawal creation; Davochain's user quote currently includes only
+the configured platform fee, so provider charges are a treasury cost.
+
+**Before enabling the flag:**
+- [ ] Test bank list and account-name resolution on the live merchant account.
+- [ ] Confirm exact Quidax fee/stamp-duty behavior, payout finality, and that
+      the main NGN wallet has dedicated liquidity that does not consume buy fuel.
+- [ ] Establish a minimum main-account reserve and monitor it; do not enable
+      payouts while buy liquidity and payout liquidity are unmanaged together.
+- [ ] Verify signed `withdraw.successful` and `withdraw.rejected` callbacks,
+      including the documented NGN success payload whose `status` may still be
+      `Processing`.
+- [ ] Exercise reference-based polling, duplicate webhook delivery, timeout,
+      process restart, and rejection/refund in an isolated low-value account.
+- [ ] Confirm finance agrees that Quidax payout fees are platform expense and
+      decide how they should appear in margin/reconciliation reporting.
+- [ ] Keep `NGN_WITHDRAWALS_ENABLED=false` in developer/staging environments;
+      use the mock for API development.
 
 ---
 

@@ -9,7 +9,7 @@ installed here.
 
 | | |
 | --- | --- |
-| [README.md](README.md) | Setup, the Quidax key, environment reference |
+| [API README](../../api/README.md) | Setup, the Quidax key, environment reference |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | How the pieces fit, the money flows, their failure modes |
 | [FLUTTER.md](FLUTTER.md) | Endpoints, auth and refresh rules, the 12-second quote contract |
 | [CMS.md](CMS.md) | Pages, FAQs and email templates: what an admin edits and what reads it |
@@ -61,7 +61,10 @@ GET    /v1/notifications
 POST   /v1/notifications/read
 POST   /v1/devices | DELETE | GET      FCM token registration
 
-GET    /v1/withdrawals/quote/ngn       naira cash-out fee (no rail yet)
+GET    /v1/withdrawals/quote/ngn       naira cash-out fee
+GET    /v1/withdrawals/ngn/banks       Quidax bank list (Nigeria/NGN)
+POST   /v1/withdrawals/ngn/verify-account  TIER_1; resolves name, read-only
+POST   /v1/withdrawals/ngn             TIER_1 + Idempotency-Key; feature-gated
 
 GET    /v1/site                        public: what the landing page renders
 GET    /v1/site/logo                   public: the brand mark
