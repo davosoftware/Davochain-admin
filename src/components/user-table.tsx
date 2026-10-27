@@ -23,6 +23,7 @@ import { cn, relativeTime } from '@/lib/utils';
 import { levelLabel } from '@/lib/levels';
 import { SavedDestinationsList } from '@/components/saved-destinations-list';
 import { DepositAddressesList } from '@/components/deposit-addresses-list';
+import { UserLimitsBox } from '@/components/user-limits-box';
 
 export function UserTable({
   rows,
@@ -305,6 +306,7 @@ export function UserTable({
                               onChanged={() => reload(row.id)}
                             />
                           ) : null}
+                          {info ? <UserLimitsBox userId={row.id} /> : null}
                           {info ? (
                             <DepositAddressesList addresses={info.depositAddresses} onChanged={() => reload(row.id)} />
                           ) : null}

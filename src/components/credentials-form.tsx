@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, KeyRound, Loader2, Trash2 } from 'lucide-react';
+import { AlertTriangle, Bell, Check, CheckCircle2, Coins, Fingerprint, HardDrive, KeyRound, Landmark, Loader2, Mail, Trash2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { clearCredential, saveCredential } from '@/app/actions/system';
 import type { CredentialsView } from '@/lib/types-admin';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { relativeTime } from '@/lib/utils';
+import { providerCards, type ProviderCard } from '@/lib/credentials';
 
 function SourceBadge({ source }: { source: 'database' | 'environment' | 'unset' }) {
   if (source === 'database') return <Badge variant="success">set here</Badge>;
@@ -60,8 +62,8 @@ function CredentialRow({
     });
 
   return (
-    <div className="border-border/40 border-b p-5 last:border-0">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+    <div className="border-border/50 border-t px-5 py-4 first:border-t-0">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="t-small font-medium">{credential.label}</span>
         <SourceBadge source={credential.source} />
         {credential.last4 ? (
@@ -77,25 +79,25 @@ function CredentialRow({
         ) : null}
       </div>
 
-      <p className="text-muted-foreground t-caption mb-3">{credential.hint}</p>
+      <p className="text-muted-foreground t-caption mb-3 line-clamp-2" title={credential.hint}>{credential.hint}</p>
 
       {canEdit ? (
         <div className="flex flex-wrap items-end gap-2">
-          <div className="grid min-w-[18rem] flex-1 gap-1.5">
-            <Label htmlFor={credential.name}>New value</Label>
+          <div className="grid min-w-0 flex-1 basis-48 gap-1.5">
+            <Label htmlFor={credential.name} className="sr-only">New value for {credential.label}</Label>
             <Input
               id={credential.name}
               type="password"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Paste the key — it is never shown again"
+              placeholder={credential.source === 'unset' ? 'Paste the key' : 'Paste a new key to replace it'}
               autoComplete="off"
               className="font-mono"
             />
           </div>
           <Button size="sm" onClick={save} disabled={!value.trim() || pending}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-            Save
+            {credential.source === 'unset' ? 'Set' : 'Replace'}
           </Button>
           {credential.source === 'database' ? (
             <Button
@@ -133,7 +135,6 @@ export function CredentialsForm({
   view: CredentialsView;
   canEdit: boolean;
 }) {
-  const groups = [...new Set(view.credentials.map((c) => c.group))];
 
   return (
     <div className="flex flex-col gap-5">
@@ -151,32 +152,62 @@ export function CredentialsForm({
           </div>
         </div>
       ) : (
-        <div className="bg-card border-border/60 flex items-start gap-3 rounded-xl border p-5">
-          <IconTile icon={KeyRound} tone="amber" size="sm" />
-          <div>
-            <h2 className="t-section">How these are held</h2>
-            <p className="text-muted-foreground t-small mt-1 max-w-3xl">
-              Encrypted before they are written, with a key that lives on the server and never in
-              the database — so a stolen backup is ciphertext, not a working Quidax key. Nothing
-              hands a stored value back, here or anywhere: you see the last four characters and
-              when it changed. Clearing one returns to the server&rsquo;s environment variable.
-            </p>
-          </div>
+        <div className="bg-card border-border/60 flex items-start gap-3 rounded-xl border px-4 py-3">
+          <KeyRound className="text-warning mt-0.5 size-4 shrink-0" />
+          <p className="text-muted-foreground t-small">
+            Keys are encrypted before they&rsquo;re stored, with a key that never touches the database. Nothing shows a
+            stored key again: you see its last four characters and when it changed. <strong>Clear</strong> goes back to
+            the value in the server&rsquo;s settings file.
+          </p>
         </div>
       )}
 
-      {groups.map((group) => (
-        <div key={group} className="bg-card border-border/60 overflow-hidden rounded-xl border">
-          <div className="border-border/70 border-b px-5 py-3">
-            <h2 className="t-section">{group}</h2>
-          </div>
-          {view.credentials
-            .filter((c) => c.group === group)
-            .map((c) => (
-              <CredentialRow key={c.name} credential={c} canEdit={canEdit} />
-            ))}
-        </div>
-      ))}
+      <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
+        {providerCards(view.credentials).map((card) => (
+          <ProviderBox key={card.group} card={card} canEdit={canEdit} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+
+const ICONS: Record<string, LucideIcon> = {
+  Quidax: Coins,
+  Payrep: Landmark,
+  Dojah: Fingerprint,
+  Email: Mail,
+  'File storage': HardDrive,
+  Push: Bell,
+};
+
+/** One provider's keys, in its own box. */
+function ProviderBox({ card, canEdit }: { card: ProviderCard; canEdit: boolean }) {
+  const Icon = ICONS[card.group] ?? KeyRound;
+  return (
+    <section className="bg-card border-border/60 flex flex-col overflow-hidden rounded-xl border shadow-xs">
+      <header className="flex items-start gap-3 px-5 pt-5 pb-4">
+        <IconTile icon={Icon} tone={card.status === 'ready' ? 'green' : 'amber'} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="t-section">{card.group}</h2>
+            {card.status === 'ready' ? (
+              <Badge variant="success">
+                <CheckCircle2 className="size-3" />
+                All set
+              </Badge>
+            ) : (
+              <Badge variant="warning">{card.missing === 1 ? '1 key missing' : `${card.missing} keys missing`}</Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground t-caption mt-1">{card.description}</p>
+        </div>
+      </header>
+      <div className="bg-muted/30 flex-1">
+        {card.credentials.map((c) => (
+          <CredentialRow key={c.name} credential={c} canEdit={canEdit} />
+        ))}
+      </div>
+    </section>
   );
 }
