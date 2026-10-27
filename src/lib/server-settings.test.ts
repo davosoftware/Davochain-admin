@@ -3,9 +3,11 @@ import assert from 'node:assert/strict';
 import {
   SIGN_OUT_PHRASE,
   displayValue,
+  editValue,
   groupSettings,
   parseSettingInput,
   reasonProblem,
+  unitRange,
   type ServerSetting,
 } from './server-settings.ts';
 
@@ -77,4 +79,25 @@ test('a reason needs 10 characters, like the API', () => {
 
 test('the sign-out phrase is fixed', () => {
   assert.equal(SIGN_OUT_PHRASE, 'SIGN OUT ALL');
+});
+
+test('hundredths of a percent show as a percentage', () => {
+  const bps = { ...base, unit: 'bps', min: 0, max: 500, value: 50 };
+  assert.equal(displayValue(bps), '0.5%');
+  assert.equal(displayValue({ ...bps, value: 200 }), '2%');
+  assert.equal(displayValue({ ...bps, value: 5 }), '0.05%');
+  assert.equal(editValue(bps), '0.5');
+  assert.deepEqual(unitRange(bps), { unit: '%', min: 0, max: 5 });
+  assert.deepEqual(unitRange(base), { unit: 'seconds', min: 5, max: 120 });
+});
+
+test('a percentage typed is saved as hundredths of a percent', () => {
+  const bps = { ...base, unit: 'bps', min: 10, max: 2000 };
+  assert.deepEqual(parseSettingInput(bps, '0.5'), { value: 50 });
+  assert.deepEqual(parseSettingInput(bps, '2'), { value: 200 });
+  assert.deepEqual(parseSettingInput(bps, ' 1.25 '), { value: 125 });
+  assert.match(parseSettingInput(bps, '0.05').error ?? '', /between 0.1% and 20%/);
+  assert.match(parseSettingInput(bps, '21').error ?? '', /between 0.1% and 20%/);
+  assert.match(parseSettingInput(bps, '0.555').error ?? '', /two decimal places/);
+  assert.match(parseSettingInput(bps, 'x').error ?? '', /percentage/);
 });

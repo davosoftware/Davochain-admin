@@ -7,9 +7,11 @@ import { toast } from 'sonner';
 import { resetServerSetting, saveServerSetting } from '@/app/actions/server-settings';
 import {
   displayValue,
+  editValue,
   groupSettings,
   parseSettingInput,
   reasonProblem,
+  unitRange,
   type ServerSetting,
 } from '@/lib/server-settings';
 import { Badge } from '@/components/ui/badge';
@@ -105,13 +107,14 @@ export function ServerSettingsBoard({ settings }: { settings: ServerSetting[] })
 function SettingDialog({ editing, onClose }: { editing: Editing; onClose: () => void }) {
   const { setting: s, mode } = editing;
   const [raw, setRaw] = useState<string | boolean>(
-    s.kind === 'boolean' ? s.value === true || s.value === 'true' : s.value === null ? '' : String(s.value),
+    s.kind === 'boolean' ? s.value === true || s.value === 'true' : editValue(s),
   );
   const [password, setPassword] = useState('');
   const [reason, setReason] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const router = useRouter();
+  const range = unitRange(s);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,8 +164,8 @@ function SettingDialog({ editing, onClose }: { editing: Editing; onClose: () => 
             {mode === 'edit' ? (
               <div className="grid gap-1.5">
                 <Label htmlFor="setting-value">
-                  New value{s.unit ? ` (${s.unit})` : ''}
-                  {s.min !== null && s.max !== null ? ` · ${s.min} to ${s.max}` : ''}
+                  New value{range.unit ? ` (${range.unit})` : ''}
+                  {range.min !== null && range.max !== null ? ` · ${range.min} to ${range.max}` : ''}
                 </Label>
                 {s.kind === 'boolean' ? (
                   <div className="flex gap-2" id="setting-value">
