@@ -1,5 +1,7 @@
 # Audit — 5 September 2026
 
+> **Status 27 Oct 2026:** a dated record of the 5 September audit; every bug in it is fixed. Later security work: `Reports/Security Fix Report.md` and `Reports/PROJECT_REVIEW.md`.
+
 Full scan of the codebase against the Quidax reference. **Eight bugs found and
 fixed.** Endpoint paths, the response envelope, header pagination and the
 429/444 split were already correct.

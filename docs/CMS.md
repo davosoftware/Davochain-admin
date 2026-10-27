@@ -1,5 +1,7 @@
 # Content
 
+> **Status 27 Oct 2026:** still accurate. Since 22 Oct emails also use a new design filled from System → General settings (logo, company name, footer text) and CMS → Social links.
+
 What the website and the apps display, and what the system emails, held as data
 rather than as strings compiled into three codebases. An admin edits it once and
 every surface changes.

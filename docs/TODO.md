@@ -1,5 +1,7 @@
 # TODO
 
+> **Status 27 Oct 2026:** **superseded.** This was the September/early-October work list. The current list of what's left is `Reports/OPEN_ISSUES.md`, and the launch steps are `Reports/LAUNCH_CHECKLIST.md` (workspace `Reports/` folder). Kept for history.
+
 Ordered by the build sequence in the design guide. The ledger before the trading —
 it is the only part that cannot be retrofitted for correctness.
 

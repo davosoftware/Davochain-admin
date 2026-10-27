@@ -1,5 +1,7 @@
 # Security features
 
+> **Status 27 Oct 2026:** **superseded** by `Reports/PROJECT_REVIEW.md` (open problems: none critical) and `Reports/Security Fix Report.md` (40+ fixes since). Since this was written: saved withdrawal destinations, admin two-step sign-in, email confirmation, rate limits, encrypted partner keys, R2 storage, checking every provider message with the provider, and the emergency "Sign out all customers". Kept for history.
+
 What is in place today, and what is worth adding before real money moves.
 
 Written after a full audit of the API against the Quidax documentation. It is a

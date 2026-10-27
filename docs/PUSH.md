@@ -1,5 +1,7 @@
 # Push notifications
 
+> **Status 27 Oct 2026:** still accurate. Push types added since: `ngn_account.ready`, `address.failed` (full list: `api/docs/FLUTTER_API.md` Appendix A). The Firebase private key can be set on System → API keys, the project ID and client email on System → Server settings (they apply after a restart).
+
 In-app notifications work with no setup — every alert is written to the
 database and readable at `GET /v1/notifications`. This document is about
 getting them onto a **device**, which needs Firebase.

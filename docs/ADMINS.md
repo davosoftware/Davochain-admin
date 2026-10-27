@@ -76,7 +76,10 @@ mean a stale list could lock them out of their own dashboard.
 ## Sessions
 
 A session ends after **30 minutes of inactivity** — set with
-`ADMIN_IDLE_TIMEOUT_MINUTES`. The risk being guarded is a dashboard left open on
+`ADMIN_IDLE_TIMEOUT_MINUTES` (an owner can change it on **System → Server settings**).
+**Two-step sign-in** (an emailed 6-digit code or a backup code after the password)
+is available to every admin and can be required by an owner; see
+`Reports/ADMIN_DASHBOARD_GUIDE.md` section 1. The risk being guarded is a dashboard left open on
 an unlocked machine, so the clock runs on idleness rather than on the age of the
 token.
 

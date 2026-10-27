@@ -1,5 +1,7 @@
 # Open questions
 
+> **Status 27 Oct 2026:** **mostly answered.** Naira provider: **Payrep MFB**. Identity checks: **Dojah** (Basic + Advanced). File storage: **Cloudflare R2**. Email verification: built. Open decisions now live in `Reports/OPEN_ISSUES.md` section B. Kept for history.
+
 Things that need a decision or an answer from someone outside the codebase.
 Nothing here is a bug — it is work that was deliberately not done, because doing
 it would have meant guessing.

@@ -1,7 +1,7 @@
 # Partner API keys
 
-The Quidax key, the webhook secret, the SMTP password and the Firebase key are
-set from **System → API keys** instead of a deployment. Rotating one is a form
+Partner secrets (Quidax, Payrep, Dojah, Cloudflare R2, the SMTP password and the
+Firebase key) are set from **System → API keys** instead of a deployment. Rotating one is a form
 submission, not a release.
 
 That is a real change in blast radius, so it is worth being precise about what
@@ -72,19 +72,27 @@ Each credential resolves in one order, and the screen says which applied:
 **Clear** removes the stored value and hands control back to the environment
 variable. That is the escape hatch if a pasted key turns out to be wrong.
 
-A change takes effect on the **next request** — no restart. The decrypted value
-is cached in the process and the cache is dropped on write.
+A change takes effect on the **next request** on the server that saved it, and
+within **60 seconds** on every other server (each keeps its copy for at most
+60 s). No restart.
 
 | Credential | Falls back to |
 | --- | --- |
 | Quidax secret key | `QUIDAX_SECRET_KEY` |
 | Quidax webhook secret | `QUIDAX_WEBHOOK_SECRET` |
+| Payrep client ID | `PAYREP_CLIENT_ID` |
+| Payrep client secret | `PAYREP_CLIENT_SECRET` |
+| Payrep webhook secret | `PAYREP_WEBHOOK_SECRET` |
+| Dojah app ID | `DOJAH_APP_ID` |
+| Dojah secret key | `DOJAH_SECRET_KEY` |
 | SMTP password | `SMTP_PASSWORD` |
+| R2 access key ID | `R2_ACCESS_KEY_ID` |
+| R2 secret access key | `R2_SECRET_ACCESS_KEY` |
 | Firebase private key | `FCM_PRIVATE_KEY` |
 
-Only secrets moved here. Hosts, ports, usernames and base URLs stay in the
-environment, because they are configuration rather than credentials and there is
-nothing to protect.
+Only secrets live here. Everyday settings such as the mail server, the R2 bucket
+or the Payrep main account are on **System → Server settings** (owners, since
+26 Oct). Database, Redis, signing secrets and provider base URLs stay in `.env`.
 
 ---
 

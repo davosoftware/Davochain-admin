@@ -1,5 +1,7 @@
 # Architecture
 
+> **Status 27 Oct 2026:** written in September; the shape and the money rules still hold. Naira now goes through **Payrep**, identity through **Dojah** (Basic and Advanced), files through **Cloudflare R2**. The up-to-date plain-language flows are in the workspace `Reports/` folder (start with `HANDOVER.md` and `HOW_DAVOCHAIN_WORKS.md`).
+
 How the pieces fit, and why each one is shaped the way it is.
 Design guide: https://claude.ai/code/artifact/21298075-e0ed-4265-b05a-6adba34ee7ab
 
@@ -25,10 +27,12 @@ Three accounts matter upstream:
 | --- | --- | --- |
 | Main Quidax account | Coin inventory + naira fuel | The treasury desk |
 | Per-user sub-accounts | That user's crypto, 1:1 with their ledger | Created on signup |
-| Davochain's own bank | Customer naira reserve | Never touches Quidax |
+| DavoChain's main account at **Payrep MFB** | Customer naira: deposits land here, naira withdrawals are paid from here | Never touches Quidax; an owner moves naira to Quidax from the Treasury screen |
 
-Naira is a ledger asset with **no Quidax counterpart on the user side**. The only
-naira Quidax ever sees is fuel for the fallback swap.
+Naira is a ledger asset with **no Quidax counterpart on the user side**. Each
+verified customer has their own Payrep account number for deposits (opened
+automatically after Basic verification). Quidax only sees naira that an owner
+moves there to buy coins.
 
 ---
 
@@ -169,6 +173,9 @@ against the wrong rung, so it is the one thing every caller has to get right.
 
 ### KYC limits
 
+*(Since 15 Oct these are **verification-level rules** set on System → Verification
+levels, covering every feature, not only naira: `Reports/KYC_VERIFICATION_FLOWS.md`.)*
+
 Naira only, per tier, per transaction and per day.
 
 A tier caps the leg that touches a bank, because that is what verifying an
@@ -204,10 +211,8 @@ platform no longer owes anybody — either money it does not pay out, or float i
 uses to buy the next coin. It is revenue, which is why it lands on the Earnings
 card rather than being treated as a transfer.
 
-The naira ladder prices a rail that does not exist yet — Davochain has no naira
-payout provider (see TODO.md). `GET /v1/withdrawals/quote/ngn` returns the fee
-and `payoutAvailable: false`, so the price can be agreed before the provider is
-chosen rather than invented on the day it arrives.
+The naira payout provider is **Payrep MFB** (since 21 Oct 2026). `GET /v1/withdrawals/quote/ngn`
+returns the fee and whether payouts are switched on (System → Withdrawals).
 
 The withdrawal fee is the only one the user is shown, because it is only half
 of what they pay: the chain takes its own cut, quoted by Quidax at send time

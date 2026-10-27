@@ -1,5 +1,7 @@
 # Wiring the website
 
+> **Status 27 Oct 2026:** still accurate. If the website calls the API from a browser, its address must be listed in the API's `CORS_ORIGINS` (e.g. `https://davochain.com,https://www.davochain.com`).
+
 The landing page does not hard-code the company's contact details, store links
 or social handles. It reads them from the API, so an admin changing a phone
 number in **System → General settings** changes it on the site — no deploy, no

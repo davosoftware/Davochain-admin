@@ -1,5 +1,7 @@
 # Flutter API Route Gap Analysis
 
+> **Status 27 Oct 2026:** **superseded.** The routes this asked for are built. The app developer's current guides are `api/docs/FLUTTER_API.md` and `Reports/FLUTTER_WIRING_GUIDE.md`. Kept for history.
+
 **Reviewed:** 1 October 2026  
 **Purpose:** Tell the Flutter/API owners which mobile routes already exist,
 which product work needs new routes, and what the client documentation must
