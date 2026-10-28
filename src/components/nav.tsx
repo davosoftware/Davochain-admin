@@ -264,7 +264,7 @@ export function Nav({
     .filter((group) => group.items.length > 0);
 
   return (
-    <nav className="flex flex-col gap-6 px-3 py-4">
+    <nav className="flex flex-col gap-4 px-4 py-4">
       {visible.map((group) => (
         <NavGroup key={group.label} group={group} pathname={pathname} onNavigate={onNavigate} />
       ))}
@@ -283,7 +283,7 @@ function NavGroup({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-sidebar-foreground/55 px-2 pb-1 text-xs font-medium">{group.label}</span>
+      <span className="text-muted-foreground mb-1 px-3 text-xs font-semibold uppercase">{group.label}</span>
 
       {group.items.map((item) => {
             const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -293,13 +293,14 @@ function NavGroup({
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  't-small flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors',
+                  // shadcnspace: 36px tall, 6px corners, slides 4px right on hover.
+                  'flex h-[36px] items-center gap-3 rounded-[6px] px-3 text-[14px] leading-5 transition-all duration-200 ease-in-out hover:translate-x-[4px]',
                   active
-                    ? 'bg-sidebar-accent text-foreground font-medium shadow-xs'
-                    : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                    ? 'bg-primary text-primary-foreground font-medium'
+                    : 'text-foreground hover:bg-primary/5 hover:text-primary',
                 )}
               >
-                <item.icon className={cn('size-4', active && 'text-primary')} />
+                <item.icon className="size-5 shrink-0" strokeWidth={1.75} />
                 {item.label}
               </Link>
         );

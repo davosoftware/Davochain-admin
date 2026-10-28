@@ -15,58 +15,56 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Small radii. Pill-everything is the tell of a template. */
-  --radius: 0.75rem;
+  /* 8px, as on shadcnspace: buttons and inputs 8, cards 12, sidebar items 6. */
+  --radius: 8px;
 
   /*
-    Warm neutrals (28 Oct 2026): cream and stone instead of a cool blue-grey,
-    so long sessions are easier on the eyes. The brand blue stays as it is;
-    against warm paper it reads friendlier, not colder.
+    Light mode is shadcnspace's light mode, exactly (28 Oct 2026): shadcn's
+    "neutral" theme. Pure white page and cards, near-black text and actions,
+    light grey lines, no tint. Dark mode below keeps the DavoChain look.
   */
-  --background: oklch(0.974 0.007 84);
-  --foreground: oklch(0.24 0.012 60);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
 
-  --card: oklch(0.995 0.003 85);
-  --card-foreground: oklch(0.24 0.012 60);
-  --popover: oklch(0.995 0.003 85);
-  --popover-foreground: oklch(0.24 0.012 60);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
 
-  /* The brand. Deep, confident, not a SaaS cornflower. */
-  --primary: oklch(0.52 0.19 259);
-  --primary-foreground: oklch(0.99 0.004 259);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
 
-  --secondary: oklch(0.952 0.009 80);
-  --secondary-foreground: oklch(0.3 0.014 60);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
 
-  --muted: oklch(0.955 0.009 80);
-  --muted-foreground: oklch(0.52 0.016 62);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
 
-  --accent: oklch(0.948 0.02 259);
-  --accent-foreground: oklch(0.36 0.12 259);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
 
-  --destructive: oklch(0.56 0.19 27);
-  --destructive-foreground: oklch(0.99 0.01 25);
-  --success: oklch(0.56 0.13 158);
-  --success-foreground: oklch(0.99 0.005 162);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --success: oklch(0.6 0.13 172);
+  --success-foreground: oklch(0.985 0 0);
   --warning: oklch(0.68 0.15 62);
   --warning-foreground: oklch(0.22 0.05 62);
 
-  --border: oklch(0.905 0.01 78);
-  --input: oklch(0.89 0.011 78);
-  --ring: oklch(0.52 0.19 259);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
 
-  --chart-1: oklch(0.52 0.19 259);
-  --chart-2: oklch(0.56 0.14 162);
-  --chart-3: oklch(0.68 0.15 62);
-  --chart-4: oklch(0.55 0.21 25);
-  --chart-5: oklch(0.58 0.15 300);
+  /* Bars in near-black over grey tracks; the ring chart in shadcn's chart colours. */
+  --chart-1: oklch(0.205 0 0);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.646 0.222 41.116);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.398 0.07 227.392);
 
-  /* The rail is a shade deeper than the page, so the inset page panel beside it
-     reads as raised (shadcn's "inset" sidebar). */
-  --sidebar: oklch(0.948 0.011 80);
-  --sidebar-foreground: oklch(0.24 0.012 60);
-  --sidebar-border: oklch(0.895 0.011 78);
-  --sidebar-accent: oklch(0.99 0.004 85);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
 }
 
 .dark {
@@ -301,15 +299,6 @@
   .stagger > :nth-child(6) { animation-delay: 250ms; }
   .stagger > :nth-child(n + 7) { animation-delay: 300ms; }
 
-  /* A card that rises a touch under the pointer. */
-  .lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px -8px oklch(0.3 0.03 60 / 0.25);
-  }
-
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
@@ -334,16 +323,17 @@
  * theme — a pastel that works on white is a glare on black.
  */
 :root {
-  --tile-blue-bg: oklch(0.94 0.035 259);
-  --tile-blue-fg: oklch(0.52 0.19 259);
-  --tile-green-bg: oklch(0.94 0.05 162);
-  --tile-green-fg: oklch(0.5 0.13 162);
-  --tile-amber-bg: oklch(0.95 0.05 82);
-  --tile-amber-fg: oklch(0.55 0.13 62);
-  --tile-rose-bg: oklch(0.94 0.035 12);
-  --tile-rose-fg: oklch(0.55 0.19 18);
-  --tile-violet-bg: oklch(0.94 0.04 300);
-  --tile-violet-fg: oklch(0.52 0.16 300);
+  /* Light mode: plain outlined circles with a near-black icon, as on shadcnspace. */
+  --tile-blue-bg: transparent;
+  --tile-blue-fg: oklch(0.145 0 0);
+  --tile-green-bg: transparent;
+  --tile-green-fg: oklch(0.145 0 0);
+  --tile-amber-bg: transparent;
+  --tile-amber-fg: oklch(0.145 0 0);
+  --tile-rose-bg: transparent;
+  --tile-rose-fg: oklch(0.145 0 0);
+  --tile-violet-bg: transparent;
+  --tile-violet-fg: oklch(0.145 0 0);
 }
 
 .dark {

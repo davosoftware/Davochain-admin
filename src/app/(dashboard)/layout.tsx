@@ -48,7 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         * to overflow within, so a long nav scrolls on its own without moving
         * the logo or the account footer.
         */}
-      <aside className="bg-sidebar sticky top-0 hidden h-dvh w-60 shrink-0 flex-col lg:flex">
+      <aside className="bg-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 flex-col lg:flex">
         <div className="flex h-14 shrink-0 items-center gap-2.5 px-4">
           <Logo className="size-6" />
           <span className="text-sm font-semibold tracking-tight">Davochain</span>
@@ -93,8 +93,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* shadcn's "inset" look: on wide screens the page sits on its own
           raised panel beside the sidebar. */}
-      <div className="bg-background flex min-w-0 flex-1 flex-col lg:my-2 lg:mr-2 lg:rounded-xl lg:border lg:border-border/60 lg:shadow-sm">
-        <header className="bg-background/80 border-border/60 sticky top-0 z-20 flex h-14 items-center gap-3 border-b px-4 backdrop-blur lg:rounded-t-xl lg:px-6">
+      <div className="bg-background flex min-w-0 flex-1 flex-col lg:my-2 lg:mr-2 lg:rounded-xl lg:border lg:border-border lg:shadow-sm">
+        <header className="bg-background border-border sticky top-0 z-20 flex h-14 items-center gap-3 border-b px-4 lg:rounded-t-xl lg:px-6">
           <MobileNav email={claims?.email ?? null} permissions={permissions} isOwner={me?.role === 'OWNER'} />
           <Separator orientation="vertical" className="!h-4 lg:hidden" />
           <PageTitle />

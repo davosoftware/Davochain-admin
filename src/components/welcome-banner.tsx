@@ -14,11 +14,7 @@ export function WelcomeBanner({
   action?: React.ReactNode;
 }) {
   return (
-    <section className="border-border/60 from-primary/[0.07] via-card to-card relative overflow-hidden rounded-xl border bg-linear-to-br p-6 shadow-xs">
-      <div
-        aria-hidden
-        className="bg-primary/10 pointer-events-none absolute -top-20 right-40 size-56 rounded-full blur-3xl"
-      />
+    <section className="border-border bg-card relative overflow-hidden rounded-xl border p-6 shadow-xs">
       <div className="relative flex flex-wrap items-start justify-between gap-6">
         <div className="min-w-0 flex-1">
           <h1 className="t-display">{title}</h1>

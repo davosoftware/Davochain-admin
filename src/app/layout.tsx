@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Geist, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 /*
- * Inter for UI: the tallest x-height of the good grotesques, which is what
- * keeps 13px table text readable. JetBrains Mono for figures — its zero is
- * slashed and its digits are unmistakable at small sizes, which matters when
- * the number is somebody's balance.
+ * Geist for UI, the face of the shadcn dashboards this admin follows (28 Oct
+ * 2026). JetBrains Mono for figures — its zero is slashed and its digits are
+ * unmistakable at small sizes, which matters when the number is a balance.
+ * (The CSS variable keeps its old name so nothing else has to change.)
  */
-const sans = Inter({
+const sans = Geist({
   variable: '--font-inter',
   subsets: ['latin'],
   display: 'swap',

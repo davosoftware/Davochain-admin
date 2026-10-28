@@ -27,7 +27,7 @@ export function IconTile({
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-xl',
+        'border-border inline-flex shrink-0 items-center justify-center rounded-full border',
         size === 'md' ? 'size-11' : 'size-9',
         TILE[tone],
       )}
@@ -68,7 +68,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 flex items-start justify-between gap-4 rounded-xl border p-5 shadow-xs lift',
+        'bg-card border-border/60 flex items-start justify-between gap-4 rounded-xl border p-5 shadow-xs',
         className,
       )}
     >
@@ -115,7 +115,7 @@ export function SplitStatCard({
   return (
     <div
       className={cn(
-        'from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift',
+        'bg-card border-border/60 rounded-xl border p-5 shadow-xs',
         className,
       )}
     >
@@ -178,7 +178,7 @@ export function WalletCard({
 }) {
   const wide = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4' }[columns];
   return (
-    <div className="from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift">
+    <div className="bg-card border-border/60 rounded-xl border p-5 shadow-xs">
       <div className="flex items-center gap-3">
         <IconTile icon={icon} tone={tone} />
         <div className="min-w-0">
@@ -255,7 +255,7 @@ export function CardLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="bg-card border-border/70 hover:bg-secondary group mt-3 inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium shadow-xs transition-colors"
+      className="bg-background border-border hover:bg-secondary group mt-3 inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-xs transition-colors"
     >
       {label}
       <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />

@@ -7,18 +7,18 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=size-])]:size-4 shrink-0',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all outline-none focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=size-])]:size-4 shrink-0',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:translate-y-px',
+          'bg-primary text-primary-foreground hover:bg-primary/80 active:translate-y-px',
         destructive:
           'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 active:translate-y-px',
         outline:
-          'border border-border bg-card shadow-xs hover:bg-secondary hover:text-secondary-foreground dark:bg-input/30',
+          'border border-border bg-background shadow-xs hover:bg-secondary hover:text-secondary-foreground dark:bg-input/30',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/70',
-        ghost: 'hover:bg-secondary hover:text-secondary-foreground',
+        ghost: 'hover:bg-primary/5 hover:text-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
