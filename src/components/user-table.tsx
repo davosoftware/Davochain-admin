@@ -238,7 +238,7 @@ export function UserTable({
                               Loading balances
                             </div>
                           ) : info ? (
-                            <div className="grid gap-6 p-5 lg:grid-cols-3">
+                            <div className="grid gap-6 p-5 lg:grid-cols-3 [&>div]:min-w-0">
                               <div>
                                 <p className="eyebrow mb-2">Details</p>
                                 <dl className="t-small flex flex-col gap-1.5">
@@ -350,9 +350,13 @@ export function UserTable({
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="truncate text-right">{value}</dd>
+    // min-w-0 lets a long value (an email) shrink and end in "…" instead of
+    // spilling into the next column; the full value is on hover.
+    <div className="flex min-w-0 items-baseline justify-between gap-4">
+      <dt className="text-muted-foreground shrink-0">{label}</dt>
+      <dd className="min-w-0 truncate text-right" title={value}>
+        {value}
+      </dd>
     </div>
   );
 }
