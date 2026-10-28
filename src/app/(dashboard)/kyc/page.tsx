@@ -71,7 +71,7 @@ export default async function KycPage({
       <PageHeader
         title="KYC review"
         action={advancedLink}
-        description="Basic verifications that need a person: the typed details beside the BVN/NIN record. Accepting an identity sends the person on to Compliance review if their AML screening was not clear. Approval signs the user out, so the new level takes effect at once."
+        description="Customers whose Basic identity check could not be passed automatically. Compare what they typed with their BVN/NIN record, then accept or reject. If their background (AML) screening flagged something, accepting sends them on to Compliance review. Approving signs the customer out once, so their new level applies straight away."
       />
 
       <p
