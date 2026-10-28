@@ -8,6 +8,8 @@ import { resetServerSetting, saveServerSetting } from '@/app/actions/server-sett
 import {
   displayValue,
   editValue,
+  GROUP_INTRO,
+  groupId,
   groupSettings,
   parseSettingInput,
   reasonProblem,
@@ -37,12 +39,30 @@ type Editing = { setting: ServerSetting; mode: 'edit' | 'reset' };
  */
 export function ServerSettingsBoard({ settings }: { settings: ServerSetting[] }) {
   const [editing, setEditing] = useState<Editing | null>(null);
+  const groups = groupSettings(settings);
 
   return (
     <>
-      {groupSettings(settings).map((group) => (
-        <section key={group.name} className="bg-card border-border/60 rounded-xl border">
-          <h2 className="t-section border-border/60 border-b px-5 py-3">{group.name}</h2>
+      <nav aria-label="Jump to a group" className="flex flex-wrap items-center gap-1.5">
+        <span className="text-muted-foreground t-caption mr-1">Jump to:</span>
+        {groups.map((g) => (
+          <a
+            key={g.name}
+            href={`#${groupId(g.name)}`}
+            className="border-border/60 bg-card hover:bg-accent t-caption rounded-full border px-3 py-1 font-medium transition-colors"
+          >
+            {g.name}
+          </a>
+        ))}
+      </nav>
+      {groups.map((group) => (
+        <section key={group.name} id={groupId(group.name)} className="bg-card border-border/60 scroll-mt-20 rounded-xl border">
+          <div className="border-border/60 border-b px-5 py-3">
+            <h2 className="t-section">{group.name}</h2>
+            {GROUP_INTRO[group.name] ? (
+              <p className="text-muted-foreground t-caption mt-0.5">{GROUP_INTRO[group.name]}</p>
+            ) : null}
+          </div>
           <ul className="divide-border/60 divide-y">
             {group.settings.map((s) => (
               <li key={s.key} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start">
@@ -50,7 +70,7 @@ export function ServerSettingsBoard({ settings }: { settings: ServerSetting[] })
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="t-small font-medium">{s.label}</span>
                     <Badge variant={s.source === 'dashboard' ? 'default' : 'outline'}>
-                      {s.source === 'dashboard' ? 'Set on dashboard' : 'Server default'}
+                      {s.source === 'dashboard' ? 'Changed here' : 'Default'}
                     </Badge>
                     {s.money ? (
                       <Badge variant="warning">
@@ -74,7 +94,7 @@ export function ServerSettingsBoard({ settings }: { settings: ServerSetting[] })
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="t-small font-mono break-all">{displayValue(s)}</span>
+                  <span className="bg-muted t-small rounded-md px-2.5 py-1 font-mono font-medium break-all">{displayValue(s)}</span>
                   <Button size="sm" variant="outline" onClick={() => setEditing({ setting: s, mode: 'edit' })}>
                     <Pencil className="size-3.5" />
                     Edit

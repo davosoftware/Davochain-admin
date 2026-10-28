@@ -4,6 +4,8 @@ import {
   SIGN_OUT_PHRASE,
   displayValue,
   editValue,
+  GROUP_INTRO,
+  groupId,
   groupSettings,
   parseSettingInput,
   reasonProblem,
@@ -100,4 +102,11 @@ test('a percentage typed is saved as hundredths of a percent', () => {
   assert.match(parseSettingInput(bps, '21').error ?? '', /between 0.1% and 20%/);
   assert.match(parseSettingInput(bps, '0.555').error ?? '', /two decimal places/);
   assert.match(parseSettingInput(bps, 'x').error ?? '', /percentage/);
+});
+
+test('every group has a one-line explanation and a link target', () => {
+  const groups = ['Naira', 'Crypto', 'Sign-up', 'Email sending', 'Trading', 'Fees', 'Sessions', 'Reports', 'Quidax speed limits', 'File storage', 'Push notifications'];
+  for (const g of groups) assert.ok(GROUP_INTRO[g], `no intro for ${g}`);
+  assert.equal(groupId('Quidax speed limits'), 'settings-quidax-speed-limits');
+  assert.equal(groupId('Sign-up'), 'settings-sign-up');
 });

@@ -38,6 +38,26 @@ export function groupSettings(settings: ServerSetting[]): { name: string; settin
   return groups;
 }
 
+/** One line under each group's title, saying what the group is for. */
+export const GROUP_INTRO: Record<string, string> = {
+  Naira: 'Naira accounts and bank transfers through Payrep.',
+  Crypto: 'Coin deposit addresses for customers.',
+  'Sign-up': 'What a new customer must do before they can move money.',
+  'Email sending': 'The mail account that sends codes, receipts and alerts.',
+  Trading: 'How long prices last and when trading pauses to stay safe.',
+  Fees: 'How the fees we collect are gathered up.',
+  Sessions: 'How long customers and admins stay signed in.',
+  Reports: 'When the daily summary email goes out.',
+  'Quidax speed limits': 'How often we call Quidax, so we stay inside what they allow.',
+  'File storage': 'Where identity documents and gift card photos are kept.',
+  'Push notifications': 'Phone notifications through Firebase.',
+};
+
+/** The anchor for a group, for the "Jump to" links. */
+export function groupId(name: string): string {
+  return `settings-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+}
+
 /** A value in plain words: On/Off, a number with its unit, "(empty)" or "Not set". */
 export function displayValue(s: Pick<ServerSetting, 'kind' | 'unit' | 'value'>): string {
   const v = s.value;
