@@ -1,4 +1,5 @@
 import type { PeerSide } from './peer';
+import type { BroadcastStatus } from './broadcasts';
 
 export interface UserListRow {
   /** The name others send crypto to (28 Oct 2026). */
@@ -154,6 +155,17 @@ export interface BroadcastRow {
   sentBy: string;
   sentByName: string;
   createdAt: string;
+  /** Sent by a background worker, in waves (29 Oct 2026). */
+  status: BroadcastStatus;
+  withEmail: boolean;
+  processedCount: number;
+  /** 0 to 100. */
+  percent: number;
+  pushSentCount: number;
+  pushFailedCount: number;
+  emailQueuedCount: number;
+  startedAt: string | null;
+  finishedAt: string | null;
 }
 
 export type AdminRole = 'OWNER' | 'SUB_ADMIN';

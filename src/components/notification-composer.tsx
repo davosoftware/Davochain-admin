@@ -76,6 +76,7 @@ function ComposerForm({ users, onDone }: { users: UserListRow[]; onDone: () => v
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
+  const [withEmail, setWithEmail] = useState(false);
   const [filter, setFilter] = useState('');
   const [pending, start] = useTransition();
   const router = useRouter();
@@ -101,13 +102,14 @@ function ComposerForm({ users, onDone }: { users: UserListRow[]; onDone: () => v
         title: title.trim(),
         body: body.trim(),
         userIds: audience === 'SELECTED' ? picked : undefined,
+        withEmail,
       });
       if (result.error) {
         toast.error('Could not send', { description: result.error });
         return;
       }
-      toast.success('Notification sent', {
-        description: `Delivered to ${result.recipientCount} user(s).`,
+      toast.success('Sending started', {
+        description: `${result.recipientCount?.toLocaleString()} customer(s). It goes out in the background; watch the progress in the list.`,
       });
       router.refresh();
       onDone();
@@ -275,6 +277,22 @@ function ComposerForm({ users, onDone }: { users: UserListRow[]; onDone: () => v
             className="border-input bg-background t-small focus-visible:border-ring focus-visible:ring-ring/30 w-full resize-none rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           />
         </Field>
+
+        <label className="border-border flex cursor-pointer items-start gap-3 rounded-lg border p-3">
+          <input
+            type="checkbox"
+            checked={withEmail}
+            onChange={(e) => setWithEmail(e.target.checked)}
+            className="accent-primary mt-1"
+          />
+          <span>
+            <span className="t-small block font-medium">Also send by email</span>
+            <span className="text-muted-foreground t-caption block">
+              To confirmed email addresses only. Sending is slower, because mail servers limit how fast we may send
+              (System → Server settings → Broadcasts).
+            </span>
+          </span>
+        </label>
       </DialogBody>
 
       <DialogFooter>

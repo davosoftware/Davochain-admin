@@ -80,6 +80,8 @@ export async function sendBroadcast(input: {
   title: string;
   body: string;
   userIds?: string[];
+  /** Also email it (confirmed addresses only). */
+  withEmail?: boolean;
 }): Promise<{ recipientCount?: number; audience?: string; error?: string }> {
   try {
     const result = await api<{ recipientCount: number; audience: string }>(
@@ -91,6 +93,18 @@ export async function sendBroadcast(input: {
   } catch (err) {
     if (isRedirect(err)) throw err;
     return { error: err instanceof ApiError ? err.message : 'Could not send' };
+  }
+}
+
+/** Pause, resume or cancel a broadcast the worker is sending (29 Oct 2026). */
+export async function controlBroadcast(id: string, action: 'pause' | 'resume' | 'cancel'): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api(`/v1/admin/broadcasts/${encodeURIComponent(id)}/${action}`, { method: 'POST' });
+    revalidatePath('/system/notifications');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: err instanceof ApiError ? err.message : `Could not ${action} it` };
   }
 }
 

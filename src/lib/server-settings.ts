@@ -51,6 +51,7 @@ export const GROUP_INTRO: Record<string, string> = {
   Reports: 'When the daily summary email goes out.',
   'Quidax speed limits': 'How often we call Quidax, so we stay inside what they allow.',
   'File storage': 'Where identity documents and gift card photos are kept.',
+  Broadcasts: 'How fast a message to customers is sent by the background worker.',
   'Push notifications': 'Phone notifications through Firebase.',
 };
 

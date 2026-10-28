@@ -36,7 +36,7 @@ export default async function NotificationsPage() {
     <>
       <PageHeader
         title="Notification Management"
-        description="Send and manage notifications. They land in the in-app feed alongside deposit and trade alerts, and go to devices as a push."
+        description="Send a message to customers. It lands in their in-app inbox and on their phones as a push (and by email if you tick it). A background worker sends it in waves, so the server stays fast; watch the progress below."
         action={<SendNotification users={users.rows} />}
       />
 

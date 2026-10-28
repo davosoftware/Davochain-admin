@@ -1,7 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Search, UserCheck, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { controlBroadcast } from '@/app/actions/users';
+import { broadcastActions, isRunning, progressLine, statusLabel, type BroadcastAction } from '@/lib/broadcasts';
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Mail, Pause, Play, Search, Square, UserCheck, Users, X } from 'lucide-react';
 import type { BroadcastRow } from '@/lib/types-admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -64,6 +68,15 @@ export function NotificationHistory({ rows }: { rows: BroadcastRow[] }) {
     direction: 'desc',
   });
   const [open, setOpen] = useState<BroadcastRow | null>(null);
+  const router = useRouter();
+  const running = isRunning(rows);
+
+  // While something is being sent, refresh every few seconds to show progress.
+  useEffect(() => {
+    if (!running) return;
+    const timer = setInterval(() => router.refresh(), 3000);
+    return () => clearInterval(timer);
+  }, [running, router]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -181,7 +194,7 @@ export function NotificationHistory({ rows }: { rows: BroadcastRow[] }) {
                     onClick={() => toggleSort('title')}
                   />
                 </TableHead>
-                <TableHead>Recipients</TableHead>
+                <TableHead>Progress</TableHead>
                 <TableHead>Sent By</TableHead>
                 <TableHead>
                   <SortButton
@@ -220,22 +233,16 @@ export function NotificationHistory({ rows }: { rows: BroadcastRow[] }) {
                         <p className="text-muted-foreground t-caption truncate">{b.body}</p>
                       </TableCell>
 
-                      <TableCell className="whitespace-nowrap">
-                        <span className="t-small tabular-nums">
-                          {b.recipientCount.toLocaleString()}
-                        </span>
-                        {/* Opens, not deliveries — the only measure that means
-                            anything once a message has left. */}
-                        <span className="text-muted-foreground t-caption ml-1.5">
-                          · {b.readCount.toLocaleString()} opened ({openRate}%)
-                        </span>
+                      <TableCell className="min-w-[13rem]">
+                        <BroadcastProgress b={b} openRate={openRate} />
                       </TableCell>
 
                       <TableCell className="t-small whitespace-nowrap">{b.sentByName}</TableCell>
 
                       <TableCell className="whitespace-nowrap">
                         <span className="t-small">{sentDate(b.createdAt)}</span>
-                        <span className="text-muted-foreground t-caption ml-1.5">
+                        {/* "1m ago" can turn into "2m ago" between the server and the browser. */}
+                        <span className="text-muted-foreground t-caption ml-1.5" suppressHydrationWarning>
                           {relativeTime(b.createdAt)}
                         </span>
                       </TableCell>
@@ -294,6 +301,10 @@ export function NotificationHistory({ rows }: { rows: BroadcastRow[] }) {
 
                 <dl className="border-border/70 grid grid-cols-2 gap-3 rounded-lg border p-3">
                   <Detail label="Type" value={open.audience === 'ALL' ? 'All Users' : 'Specific Users'} />
+                  <Detail label="Status" value={statusLabel(open.status)} />
+                  <Detail label="Progress" value={progressLine(open)} />
+                  <Detail label="Phones reached" value={open.pushSentCount.toLocaleString()} />
+                  <Detail label="Email" value={open.withEmail ? `${open.emailQueuedCount.toLocaleString()} sent to the mail queue` : 'Not sent by email'} />
                   <Detail label="Recipients" value={open.recipientCount.toLocaleString()} />
                   <Detail label="Opened" value={open.readCount.toLocaleString()} />
                   <Detail
@@ -349,5 +360,73 @@ function SortButton({
       {label}
       <Icon className={cn('size-3', !active && 'opacity-50')} />
     </button>
+  );
+}
+
+/** Status, a bar and the counts (29 Oct 2026). */
+function BroadcastProgress({ b, openRate }: { b: BroadcastRow; openRate: number }) {
+  const tone =
+    b.status === 'DONE'
+      ? 'bg-success'
+      : b.status === 'CANCELLED'
+        ? 'bg-muted-foreground'
+        : b.status === 'PAUSED'
+          ? 'bg-warning'
+          : 'bg-primary';
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="t-small flex items-center gap-1.5 font-medium">
+        {statusLabel(b.status)}
+        {b.withEmail ? <Mail className="text-muted-foreground size-3" aria-label="Also by email" /> : null}
+      </span>
+      <div className="bg-secondary h-1.5 w-full overflow-hidden rounded-full">
+        <div className={cn('h-full rounded-full transition-all', tone)} style={{ width: `${b.percent}%` }} />
+      </div>
+      <span className="text-muted-foreground t-caption tabular-nums">{progressLine(b)}</span>
+      {/* Opens, not deliveries: the only measure that means anything once a message has left. */}
+      <span className="text-muted-foreground t-caption tabular-nums">
+        {b.readCount.toLocaleString('en-US')} opened ({openRate}%)
+      </span>
+      <div className="-ml-2 flex">
+        <BroadcastControls id={b.id} status={b.status} />
+      </div>
+    </div>
+  );
+}
+
+const ACTION_UI: Record<BroadcastAction, { label: string; icon: typeof Pause; confirm?: string }> = {
+  pause: { label: 'Pause', icon: Pause },
+  resume: { label: 'Resume', icon: Play },
+  cancel: { label: 'Cancel', icon: Square, confirm: 'Stop sending this message? Customers who already got it keep it. This cannot be undone.' },
+};
+
+/** Pause, resume and cancel, for whoever may send broadcasts. */
+function BroadcastControls({ id, status }: { id: string; status: string }) {
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const act = (action: BroadcastAction) =>
+    start(async () => {
+      const ui = ACTION_UI[action];
+      if (ui.confirm && !globalThis.confirm(ui.confirm)) return;
+      const r = await controlBroadcast(id, action);
+      if (r.error) {
+        toast.error(`Could not ${action}`, { description: r.error });
+        return;
+      }
+      toast.success(action === 'pause' ? 'Paused' : action === 'resume' ? 'Sending again' : 'Cancelled');
+      router.refresh();
+    });
+  return (
+    <>
+      {broadcastActions(status).map((action) => {
+        const ui = ACTION_UI[action];
+        return (
+          <Button key={action} variant="ghost" size="sm" className="h-7 px-2" disabled={pending} onClick={() => act(action)}>
+            <ui.icon className="size-3.5" />
+            {ui.label}
+          </Button>
+        );
+      })}
+    </>
   );
 }
