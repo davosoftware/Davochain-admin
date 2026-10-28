@@ -27,7 +27,7 @@ export function AttentionPanel({ items }: { items: AttentionItem[] }) {
   }
 
   return (
-    <section className="bg-card border-border/60 rounded-xl border p-5">
+    <section className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <h2 className="t-section mb-3">
         Needs your attention <span className="text-muted-foreground font-normal">({items.length})</span>
       </h2>

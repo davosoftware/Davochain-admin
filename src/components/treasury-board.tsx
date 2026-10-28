@@ -20,7 +20,7 @@ const digits = (v: string) => v.replace(/\D/g, '');
 
 function Figure({ icon: Icon, title, value, help, tip }: { icon: typeof Wallet; title: string; value: string; help: string; tip: string }) {
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <div className="text-muted-foreground flex items-center gap-2">
         <Icon className="size-4" />
         <p className="t-small">{title}</p>
@@ -47,7 +47,7 @@ function ReserveCard({ s, isOwner }: { s: TreasurySnapshot; isOwner: boolean }) 
       router.refresh();
     });
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <h2 className="t-section mb-1">Payout reserve</h2>
       <p className="text-muted-foreground t-caption mb-3">
         Naira that must stay at {s.rail.name} so customer withdrawals never run short. It can&apos;t be sent to Quidax, and owners get an email when the
@@ -103,7 +103,7 @@ function FundingAccountCard({ s, banks, isOwner }: { s: TreasurySnapshot; banks:
     });
 
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <h2 className="t-section mb-1">Quidax funding account</h2>
       <p className="text-muted-foreground t-caption mb-3">
         The bank account Quidax gives us for adding naira to our main Quidax account. Money sent to Quidax goes here.
@@ -186,7 +186,7 @@ function SendCard({ s, isOwner }: { s: TreasurySnapshot; isOwner: boolean }) {
       router.refresh();
     });
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <div className="flex items-center gap-2">
         <h2 className="t-section">Send naira to Quidax</h2>
         <ArrowRight className="size-4" />
@@ -319,7 +319,7 @@ export function TreasuryBoard({ s, banks, isOwner }: { s: TreasurySnapshot; bank
       </div>
       <FundingAccountCard s={s} banks={banks} isOwner={isOwner} />
 
-      <div className="bg-card border-border/60 rounded-xl border p-5">
+      <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
         <h2 className="t-section mb-1">Recent moves to Quidax</h2>
         <p className="text-muted-foreground t-caption mb-3">Newest first. Each is also in the audit log.</p>
         {s.moves.length === 0 ? (

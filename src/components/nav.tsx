@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { matchNav } from '@/lib/nav-match';
 
 /**
  * Grouped by what you are doing, not by which controller serves it.
@@ -57,7 +58,7 @@ interface NavItem {
   ownerOnly?: boolean;
 }
 
-const groups: { label: string; items: NavItem[] }[] = [
+export const groups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Watch',
     items: [
@@ -282,7 +283,7 @@ function NavGroup({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="eyebrow px-2 pb-1">{group.label}</span>
+      <span className="text-sidebar-foreground/55 px-2 pb-1 text-xs font-medium">{group.label}</span>
 
       {group.items.map((item) => {
             const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -294,7 +295,7 @@ function NavGroup({
                 className={cn(
                   't-small flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors',
                   active
-                    ? 'bg-sidebar-accent text-foreground font-medium'
+                    ? 'bg-sidebar-accent text-foreground font-medium shadow-xs'
                     : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
                 )}
               >
@@ -304,5 +305,18 @@ function NavGroup({
         );
       })}
     </div>
+  );
+}
+
+/** Where you are, in the top bar: "People / Users". */
+export function PageTitle() {
+  const hit = matchNav(groups, usePathname());
+  if (!hit) return null;
+  return (
+    <p className="t-small flex min-w-0 items-center gap-1.5">
+      <span className="text-muted-foreground hidden sm:inline">{hit.group}</span>
+      <span className="text-muted-foreground/50 hidden sm:inline">/</span>
+      <span className="truncate font-medium">{hit.label}</span>
+    </p>
   );
 }

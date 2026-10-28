@@ -310,7 +310,7 @@ export function ReconciliationBoard({
         <p className="text-muted-foreground t-caption">Only an owner can decide a send or correct a balance. You can see everything.</p>
       ) : null}
 
-      <div className="bg-card border-border/60 rounded-xl border p-5">
+      <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
         <h2 className="t-section mb-1">Recent balance corrections</h2>
         <p className="text-muted-foreground t-caption mb-3">Every correction an owner made, newest first. Each is also in the audit log.</p>
         {corrections.length === 0 ? (

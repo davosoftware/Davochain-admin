@@ -73,7 +73,7 @@ export function DojahAdvancedCard({ settings, ready, failing, isOwner }: { setti
     });
 
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <div className="flex flex-wrap items-center gap-2">
         <ScanFace className="size-4" />
         <h2 className="t-section">Advanced checks (ID, selfie, proof of address)</h2>

@@ -59,7 +59,7 @@ export function AutoCreateCard({ networks, canEdit }: { networks: AutoCreateNetw
 
   return (
     <>
-      <div className="bg-card border-border/60 rounded-xl border p-5">
+      <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
         <div className="flex items-start gap-3">
           <Sparkles className="text-primary mt-0.5 size-4 shrink-0" />
           <div className="flex-1">

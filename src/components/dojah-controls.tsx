@@ -52,7 +52,7 @@ function SettingsCard({ settings, canEdit }: { settings: DojahSettings; canEdit:
     });
 
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <h2 className="t-section mb-1">Settings</h2>
       <p className="text-muted-foreground t-caption mb-4">
         Set here, these replace the server&apos;s own numbers (from its settings file). &quot;Server default&quot; means nothing is set here yet.
@@ -135,7 +135,7 @@ function SwitchCard({ enabled, source, ready, failing, isOwner }: { enabled: boo
     });
 
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <div className="flex items-center gap-2">
         <Power className="size-4" />
         <h2 className="t-section">Basic verification switch</h2>
@@ -201,7 +201,7 @@ function CalculatorCard({ canEdit, onUse }: { canEdit: boolean; onUse: (min: num
     });
 
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-5">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <div className="flex items-center gap-2">
         <Calculator className="size-4" />
         <h2 className="t-section">Work out the hard stop and warning level</h2>

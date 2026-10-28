@@ -64,7 +64,7 @@ function Card({
   className?: string;
 }) {
   return (
-    <div className={cn('bg-card border-border/60 rounded-xl border p-5', className)}>
+    <div className={cn('bg-card border-border/60 rounded-xl border shadow-xs p-5', className)}>
       <div className="mb-4 flex items-center gap-2.5">
         <IconTile icon={icon} tone={tone} size="sm" />
         <h2 className="t-section">{title}</h2>

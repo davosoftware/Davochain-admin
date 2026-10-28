@@ -214,7 +214,7 @@ export function LevelPolicyGrid({ initial, canEdit }: { initial: LevelsView; can
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="bg-card border-border/60 rounded-xl border p-5">
+        <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
           <h2 className="t-section mb-1">Withdrawal cool-offs</h2>
           <p className="text-muted-foreground t-caption mb-4">Hours to wait before withdrawing. 0 means no wait.</p>
           <div className="grid gap-4">
@@ -246,7 +246,7 @@ export function LevelPolicyGrid({ initial, canEdit }: { initial: LevelsView; can
           </div>
         </div>
 
-        <div className="bg-card border-border/60 rounded-xl border p-5">
+        <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
           <h2 className="t-section mb-1">Platform trading limit</h2>
           <p className="text-muted-foreground t-caption mb-4">
             Buying, selling and swapping by everyone together, per day. Empty means no limit.
@@ -274,7 +274,7 @@ export function LevelPolicyGrid({ initial, canEdit }: { initial: LevelsView; can
         </div>
       </div>
 
-      <div className="bg-card border-border/60 rounded-xl border p-5">
+      <div className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
         <h2 className="t-section mb-1">Saved withdrawal destinations</h2>
         <p className="text-muted-foreground t-caption mb-4">
           Withdrawals go only to accounts and addresses a customer has saved (with their password). How many each

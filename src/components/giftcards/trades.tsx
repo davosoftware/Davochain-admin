@@ -372,7 +372,7 @@ function Figure({
   tip: string;
 }) {
   return (
-    <div className="bg-card border-border/60 rounded-xl border p-4">
+    <div className="bg-card border-border/60 rounded-xl border shadow-xs p-4">
       <div className="flex items-center gap-1.5">
         <p className="eyebrow">{label}</p>
         <InfoTip text={tip} />
