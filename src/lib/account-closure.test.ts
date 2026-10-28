@@ -1,12 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { closeFormProblem, shownEmail } from './account-closure.ts';
+import { closeFormProblem, dataStatusLine, shownEmail } from './account-closure.ts';
 
-test('the close form needs a 10-character reason, the password and the tick', () => {
-  assert.match(closeFormProblem({ reason: 'short', password: 'x', confirmed: true }) ?? '', /10 characters/);
-  assert.match(closeFormProblem({ reason: 'Customer asked by email', password: '', confirmed: true }) ?? '', /password/);
-  assert.match(closeFormProblem({ reason: 'Customer asked by email', password: 'x', confirmed: false }) ?? '', /Tick/);
-  assert.equal(closeFormProblem({ reason: '  Customer asked by email  ', password: 'x', confirmed: true }), null);
+test('the close form needs a data choice, a 10-character reason, the password and the tick', () => {
+  const ok = { dataChoice: 'KEEP' as const, reason: 'Customer asked by email', password: 'x', confirmed: true };
+  assert.match(closeFormProblem({ ...ok, dataChoice: null }) ?? '', /what happens to their data/);
+  assert.match(closeFormProblem({ ...ok, reason: 'short' }) ?? '', /10 characters/);
+  assert.match(closeFormProblem({ ...ok, password: '' }) ?? '', /password/);
+  assert.match(closeFormProblem({ ...ok, confirmed: false }) ?? '', /Tick/);
+  assert.equal(closeFormProblem({ ...ok, reason: '  Customer asked by email  ' }), null);
+});
+
+test('a closed account says what happened to its data', () => {
+  assert.equal(dataStatusLine({ dataDeletedAt: '2026-10-28T10:00:00Z', dataDeleteAt: null }), 'Personal data deleted on 28 Oct 2026.');
+  assert.equal(dataStatusLine({ dataDeletedAt: null, dataDeleteAt: '2027-04-28T10:00:00Z' }), 'Personal data will be deleted on 28 Apr 2027.');
+  assert.equal(dataStatusLine({ dataDeletedAt: null, dataDeleteAt: null }), 'Data kept on file.');
 });
 
 test('a closed account shows its original email, not the placeholder', () => {

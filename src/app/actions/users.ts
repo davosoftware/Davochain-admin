@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { api, ApiError, isRedirect } from '@/lib/api';
 import type { FeeKind, UserDetail } from '@/lib/types-admin';
-import type { CloseCheck } from '@/lib/account-closure';
+import type { CloseCheck, DataChoice } from '@/lib/account-closure';
 
 export async function loadUser(
   userId: string,
@@ -114,10 +114,25 @@ export async function checkCloseUser(userId: string): Promise<{ check?: CloseChe
 /** Owners only: closes the account. The API refuses while money is held or anything is in progress. */
 export async function closeUser(
   userId: string,
-  input: { password: string; reason: string },
-): Promise<{ ok?: true; error?: string }> {
+  input: { password: string; reason: string; dataChoice: DataChoice },
+): Promise<{ ok?: true; dataDeleted?: boolean; dataDeleteAt?: string | null; error?: string }> {
   try {
-    await api(`/v1/admin/users/${encodeURIComponent(userId)}/close`, {
+    const r = await api<{ dataDeleted: boolean; dataDeleteAt: string | null }>(`/v1/admin/users/${encodeURIComponent(userId)}/close`, {
+      method: 'POST',
+      body: JSON.stringify({ password: input.password, reason: input.reason.trim(), dataChoice: input.dataChoice }),
+    });
+    revalidatePath('/users');
+    return { ok: true, dataDeleted: r.dataDeleted, dataDeleteAt: r.dataDeleteAt };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: err instanceof ApiError ? err.message : 'Could not close this account' };
+  }
+}
+
+/** Owners only: delete the personal data of an account that is already closed. */
+export async function deleteUserData(userId: string, input: { password: string; reason: string }): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api(`/v1/admin/users/${encodeURIComponent(userId)}/delete-data`, {
       method: 'POST',
       body: JSON.stringify({ password: input.password, reason: input.reason.trim() }),
     });
@@ -125,6 +140,6 @@ export async function closeUser(
     return { ok: true };
   } catch (err) {
     if (isRedirect(err)) throw err;
-    return { error: err instanceof ApiError ? err.message : 'Could not close this account' };
+    return { error: err instanceof ApiError ? err.message : 'Could not delete the data' };
   }
 }

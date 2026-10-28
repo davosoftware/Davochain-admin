@@ -36,6 +36,9 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
   closedReason?: string | null;
   closedEmail?: string | null;
   closedPhone?: string | null;
+  /** When the personal data is due to be deleted, or was (28 Oct 2026). */
+  dataDeleteAt?: string | null;
+  dataDeletedAt?: string | null;
   transactionCount: number;
   quidax: { quidaxUserId: string; quidaxSn: string; aliasEmail: string } | null;
   kyc: {

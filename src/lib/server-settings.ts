@@ -43,6 +43,7 @@ export const GROUP_INTRO: Record<string, string> = {
   Naira: 'Naira accounts and bank transfers through Payrep.',
   Crypto: 'Coin deposit addresses for customers.',
   'Sign-up': 'What a new customer must do before they can move money.',
+  'Closed accounts': "How long a closed customer's personal data is kept when an owner chooses \"delete later\".",
   'Email sending': 'The mail account that sends codes, receipts and alerts.',
   Trading: 'How long prices last and when trading pauses to stay safe.',
   Fees: 'How the fees we collect are gathered up.',

@@ -25,8 +25,8 @@ import { SavedDestinationsList } from '@/components/saved-destinations-list';
 import { DepositAddressesList } from '@/components/deposit-addresses-list';
 import { UserLimitsBox } from '@/components/user-limits-box';
 import { formatDateOfBirth } from '@/lib/date-of-birth';
-import { shownEmail } from '@/lib/account-closure';
-import { CloseAccountSection } from '@/components/close-account';
+import { dataStatusLine, shownEmail } from '@/lib/account-closure';
+import { CloseAccountSection, DeleteDataSection } from '@/components/close-account';
 
 export function UserTable({
   rows,
@@ -274,8 +274,8 @@ export function UserTable({
                                   <p className="t-caption bg-secondary border-border mt-3 rounded-md border p-2">
                                     <span className="font-medium">Closed</span>
                                     {info.closedAt ? ` ${relativeTime(info.closedAt)}` : ''}
-                                    {info.closedReason ? `: ${info.closedReason}` : ''}. Its email and phone were freed for a new
-                                    sign-up; the ones shown here are the originals.
+                                    {info.closedReason ? `: ${info.closedReason}` : ''}. {dataStatusLine(info)}
+                                    {info.dataDeletedAt ? '' : ' Its email and phone were freed for a new sign-up; the ones shown here are the originals.'}
                                   </p>
                                 ) : null}
                                 {info.suspendedReason ? (
@@ -326,6 +326,13 @@ export function UserTable({
                           {info ? <UserLimitsBox userId={row.id} /> : null}
                           {info ? (
                             <DepositAddressesList addresses={info.depositAddresses} onChanged={() => reload(row.id)} />
+                          ) : null}
+                          {info && isOwner && info.status === 'CLOSED' && !info.dataDeletedAt ? (
+                            <DeleteDataSection
+                              userId={row.id}
+                              name={`${info.firstName} ${info.lastName}`}
+                              onDeleted={() => reload(row.id)}
+                            />
                           ) : null}
                           {info && isOwner && info.status !== 'CLOSED' ? (
                             <CloseAccountSection
