@@ -312,8 +312,14 @@ function NavGroup({
 export function PageTitle() {
   const hit = matchNav(groups, usePathname());
   if (!hit) return null;
+  const Icon = groups.flatMap((g) => g.items).find((i) => i.href === hit.href)?.icon;
   return (
     <p className="t-small flex min-w-0 items-center gap-1.5">
+      {Icon ? (
+        <span className="bg-primary/10 text-primary mr-1 hidden size-7 shrink-0 items-center justify-center rounded-md sm:flex">
+          <Icon className="size-4" />
+        </span>
+      ) : null}
       <span className="text-muted-foreground hidden sm:inline">{hit.group}</span>
       <span className="text-muted-foreground/50 hidden sm:inline">/</span>
       <span className="truncate font-medium">{hit.label}</span>

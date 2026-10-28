@@ -19,6 +19,7 @@ const TONE: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' |
 export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge variant={TONE[status] ?? 'outline'} title={STATUS_HELP[status]}>
+      <span aria-hidden className="size-1.5 rounded-full bg-current opacity-80" />
       {status.replace(/_/g, ' ').toLowerCase()}
     </Badge>
   );

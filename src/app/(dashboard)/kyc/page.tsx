@@ -88,7 +88,9 @@ export default async function KycPage({
       {rows.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16">
-            <ShieldCheck className="text-muted-foreground size-8" />
+            <span className="bg-primary/10 text-primary ring-primary/15 flex size-12 items-center justify-center rounded-full ring-4">
+              <ShieldCheck className="size-5" />
+            </span>
             <p className="text-sm font-medium">Nothing waiting</p>
             <p className="text-muted-foreground text-sm">
               {state.search

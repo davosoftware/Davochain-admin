@@ -110,7 +110,9 @@ export default async function DailyLimitsPageView({
       {data.customers.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
-            <Gauge className="text-muted-foreground size-6" />
+            <span className="bg-primary/10 text-primary ring-primary/15 flex size-12 items-center justify-center rounded-full ring-4">
+              <Gauge className="size-5" />
+            </span>
             <p className="t-small font-medium">No customers match</p>
             <p className="text-muted-foreground t-caption">Nobody used a limit on {data.date} with these filters.</p>
           </CardContent>

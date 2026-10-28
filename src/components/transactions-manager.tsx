@@ -332,7 +332,7 @@ export function TransactionsManager({
       ) : null}
 
       {/* ── which kind ───────────────────────────────────── */}
-      <div className="border-border/70 mb-5 flex flex-wrap gap-1 overflow-x-auto border-b">
+      <div className="bg-muted/80 border-border/50 mb-5 flex w-fit max-w-full flex-wrap gap-1 overflow-x-auto rounded-lg border p-1">
         {TABS.map(({ tab: value, label }) => {
           const on = value === tab;
           const next = new URLSearchParams(params.toString());
@@ -350,8 +350,8 @@ export function TransactionsManager({
               key={value}
               href={`${pathname}?${next}`}
               className={cn(
-                'relative flex items-center gap-2 rounded-t-lg px-4 py-2.5 transition-colors',
-                on ? 'bg-secondary/60' : 'hover:bg-secondary/30',
+                'flex items-center gap-2 rounded-md px-3 py-1.5 transition-all',
+                on ? 'bg-card shadow-xs' : 'hover:bg-card/60',
               )}
             >
               <span
@@ -364,7 +364,6 @@ export function TransactionsManager({
                   {count}
                 </Badge>
               ) : null}
-              {on ? <span className="bg-primary absolute inset-x-0 -bottom-px h-0.5" /> : null}
             </Link>
           );
         })}
@@ -423,7 +422,7 @@ export function TransactionsManager({
         </div>
       </div>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

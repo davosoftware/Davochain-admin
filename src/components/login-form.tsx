@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { AlertCircle, Check, Clock } from 'lucide-react';
+import { AlertCircle, Check, Clock, Landmark, ShieldCheck, Users } from 'lucide-react';
 import { login, type LoginState } from '@/app/actions/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +67,7 @@ function LoginBody({ reason, invited, onBackToPassword }: { reason?: string; inv
   const [resetting, setResetting] = useState(false);
 
   return (
+    <div className="grid min-h-screen lg:grid-cols-2">
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
       {/* A single quiet gradient rather than a busy hero — this is a door, not a landing page. */}
       <div
@@ -159,5 +160,48 @@ function LoginBody({ reason, invited, onBackToPassword }: { reason?: string; inv
         </p>
       </div>
     </main>
+    <BrandPanel />
+    </div>
+  );
+}
+
+/** The right half of the sign-in page on wide screens (shadcn's two-column login). */
+function BrandPanel() {
+  const points = [
+    { icon: Landmark, text: 'Treasury, stock and earnings at a glance' },
+    { icon: Users, text: 'Customers, identity checks and daily limits' },
+    { icon: ShieldCheck, text: 'Every change asks for a reason and is kept in the audit log' },
+  ];
+  return (
+    <aside className="relative hidden overflow-hidden bg-linear-to-br from-[#135CF7] to-[#0b3fb0] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -right-24 size-96 rounded-full bg-[#66B3FF]/25 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-32 -left-16 size-96 rounded-full bg-white/10 blur-3xl"
+      />
+      <div className="relative flex items-center gap-2.5">
+        <span className="rounded-lg bg-white p-1.5 shadow-sm">
+          <Logo className="size-6" />
+        </span>
+        <span className="text-lg font-semibold tracking-tight">DavoChain</span>
+      </div>
+      <div className="relative max-w-md">
+        <h2 className="text-3xl font-semibold tracking-tight">Run the exchange from one place.</h2>
+        <ul className="mt-8 flex flex-col gap-4">
+          {points.map(({ icon: Icon, text }) => (
+            <li key={text} className="flex items-center gap-3 text-white/90">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
+                <Icon className="size-4" />
+              </span>
+              {text}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="relative text-sm text-white/60">Admin dashboard · for the DavoChain team only</p>
+    </aside>
   );
 }

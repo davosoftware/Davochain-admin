@@ -100,7 +100,7 @@ export function UserTable({
     });
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <div className="border-border/70 flex items-center gap-3 border-b p-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />

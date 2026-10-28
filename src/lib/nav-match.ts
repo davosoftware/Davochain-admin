@@ -6,18 +6,18 @@
 export function matchNav(
   groups: { label: string; items: { href: string; label: string }[] }[],
   pathname: string,
-): { group: string; label: string } | null {
-  let best: { group: string; label: string; length: number } | null = null;
+): { group: string; label: string; href: string } | null {
+  let best: { group: string; label: string; href: string } | null = null;
   for (const group of groups) {
     for (const item of group.items) {
       const hit =
         item.href === '/'
           ? pathname === '/'
           : pathname === item.href || pathname.startsWith(`${item.href}/`);
-      if (hit && (!best || item.href.length > best.length)) {
-        best = { group: group.label, label: item.label, length: item.href.length };
+      if (hit && (!best || item.href.length > best.href.length)) {
+        best = { group: group.label, label: item.label, href: item.href };
       }
     }
   }
-  return best ? { group: best.group, label: best.label } : null;
+  return best;
 }

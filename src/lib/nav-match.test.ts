@@ -15,13 +15,13 @@ const groups = [
 ];
 
 test('the home page matches only itself', () => {
-  assert.deepEqual(matchNav(groups, '/'), { group: 'Watch', label: 'Overview' });
+  assert.deepEqual(matchNav(groups, '/'), { group: 'Watch', label: 'Overview', href: '/' });
 });
 
 test('a page inside a section matches its sidebar item', () => {
-  assert.deepEqual(matchNav(groups, '/giftcards/trades'), { group: 'Gift cards', label: 'Card trades' });
-  assert.deepEqual(matchNav(groups, '/giftcards/trades/abc123'), { group: 'Gift cards', label: 'Card trades' });
-  assert.deepEqual(matchNav(groups, '/system/server-settings'), { group: 'System', label: 'Server settings' });
+  assert.deepEqual(matchNav(groups, '/giftcards/trades'), { group: 'Gift cards', label: 'Card trades', href: '/giftcards/trades' });
+  assert.deepEqual(matchNav(groups, '/giftcards/trades/abc123'), { group: 'Gift cards', label: 'Card trades', href: '/giftcards/trades' });
+  assert.deepEqual(matchNav(groups, '/system/server-settings'), { group: 'System', label: 'Server settings', href: '/system/server-settings' });
 });
 
 test('a lookalike path does not match', () => {

@@ -17,7 +17,9 @@ export function AttentionPanel({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) {
     return (
       <div className="border-success/30 bg-success/5 flex items-center gap-3 rounded-xl border px-5 py-4">
-        <CircleCheck className="text-success size-5 shrink-0" />
+        <span className="bg-success/15 text-success flex size-9 shrink-0 items-center justify-center rounded-full">
+          <CircleCheck className="size-5" />
+        </span>
         <div>
           <p className="t-small font-medium">All clear</p>
           <p className="text-muted-foreground t-caption">Nothing needs you right now. Stock, records and transactions look fine.</p>

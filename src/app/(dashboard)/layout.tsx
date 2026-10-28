@@ -54,7 +54,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="shrink-0 p-3">
           <Link
             href="/settings"
-            className="hover:bg-sidebar-accent/60 mb-1 flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors"
+            className="bg-card border-border/60 hover:bg-sidebar-accent mb-1.5 flex items-center gap-2.5 rounded-lg border px-2.5 py-2 shadow-xs transition-colors"
           >
             <Avatar
               id={me?.id ?? 'unknown'}
