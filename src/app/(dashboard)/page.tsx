@@ -1,25 +1,43 @@
 import Link from 'next/link';
 import {
+  ArrowDownToLine,
   ArrowLeftRight,
   ArrowRight,
+  ArrowUpFromLine,
   ChartColumn,
   ChartPie,
+  ChartSpline,
   Coins,
+  Download,
   Fuel,
+  Gift,
   PiggyBank,
+  Repeat,
   ShieldCheck,
+  SlidersHorizontal,
+  Upload,
   UserCheck,
   UserX,
   Users,
   Wallet,
+  type LucideIcon,
 } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import type { DriftRow, FuelLevel, InventoryRow, AdminTransaction } from '@/lib/types';
-import type { AdminMe, OverviewSnapshot } from '@/lib/types-admin';
+import type { AdminMe, OverviewSnapshot, TxPage } from '@/lib/types-admin';
 import { StartHere } from '@/components/start-here';
 import { AttentionPanel } from '@/components/attention-panel';
-import { CryptoBarChart, MixDonut } from '@/components/overview-charts';
-import { cryptoBars, timeOfDay, transactionMix } from '@/lib/overview-charts';
+import { CryptoBarChart, MixDonut, WeeklyArea } from '@/components/overview-charts';
+import { WelcomeBanner } from '@/components/welcome-banner';
+import { Progress } from '@/components/ui/progress';
+import {
+  activityAmount,
+  cryptoBars,
+  lastSevenDays,
+  stockLevel,
+  timeOfDay,
+  transactionMix,
+} from '@/lib/overview-charts';
 import { activityLine, attentionItems, greeting } from '@/lib/overview';
 import { DateRangeFilter } from '@/components/date-range-filter';
 import { TIPS } from '@/lib/tips';
@@ -42,7 +60,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { formatCoin, formatNaira, formatPercent, formatUsd, relativeTime } from '@/lib/utils';
+import { cn, formatCoin, formatNaira, formatPercent, formatUsd, relativeTime } from '@/lib/utils';
+
+/** An icon and tile colour per kind of transaction, for Recent activity. */
+const ACTIVITY_ICON: Record<string, { icon: LucideIcon; tile: string }> = {
+  BUY: { icon: ArrowDownToLine, tile: 'bg-[var(--tile-blue-bg)] text-[var(--tile-blue-fg)]' },
+  SELL: { icon: ArrowUpFromLine, tile: 'bg-[var(--tile-green-bg)] text-[var(--tile-green-fg)]' },
+  SWAP: { icon: Repeat, tile: 'bg-[var(--tile-amber-bg)] text-[var(--tile-amber-fg)]' },
+  DEPOSIT: { icon: Download, tile: 'bg-[var(--tile-violet-bg)] text-[var(--tile-violet-fg)]' },
+  WITHDRAWAL: { icon: Upload, tile: 'bg-[var(--tile-rose-bg)] text-[var(--tile-rose-fg)]' },
+  ADJUSTMENT: { icon: SlidersHorizontal, tile: 'bg-secondary text-muted-foreground' },
+  GIFT_CARD: { icon: Gift, tile: 'bg-[var(--tile-violet-bg)] text-[var(--tile-violet-fg)]' },
+};
+const OTHER_ACTIVITY = { icon: ArrowLeftRight, tile: 'bg-secondary text-muted-foreground' };
 
 export const dynamic = 'force-dynamic';
 
@@ -68,9 +98,11 @@ export default async function OverviewPage({
    * that person's own home screen, every single login.
    */
   const canSeeDesk = me?.permissions.includes('inventory.view') ?? false;
+  const can = (p: string) => me?.permissions.includes(p) ?? false;
+  const week = lastSevenDays();
   const noRows = <T,>() => Promise.resolve([] as T[]);
 
-  const [fuel, inventory, drift, transactions, snapshot, reconciling] = await Promise.all([
+  const [fuel, inventory, drift, transactions, snapshot, reconciling, weekly] = await Promise.all([
     // Null means "not cleared to see it"; an ApiError means it was asked for
     // and genuinely failed. Those are different and must not look the same.
     canSeeDesk
@@ -94,6 +126,16 @@ export default async function OverviewPage({
     ).catch(() => null),
     // Only counted, for "Needs your attention". 100 is plenty to say "100+".
     api<AdminTransaction[]>('/v1/admin/transactions?status=RECONCILING&limit=100').catch(() => [] as AdminTransaction[]),
+    // One small count per day for the "Last 7 days" chart (null: not allowed or failed).
+    can('transactions.view')
+      ? Promise.all(
+          week.map((d) =>
+            api<TxPage>(
+              `/v1/admin/transactions/manager?${new URLSearchParams({ from: d.from, to: d.to, pageSize: '1' })}`,
+            ).then((res) => ({ label: d.label, value: res.total })),
+          ),
+        ).catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   const deskFailed = fuel instanceof ApiError ? fuel : null;
@@ -116,15 +158,26 @@ export default async function OverviewPage({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="t-display">{greeting(me?.name)}</h1>
-          <p className="text-muted-foreground t-body mt-1">
-            Here is how DavoChain is doing{from || to ? ' for the dates you picked' : ''}. Hover over any{' '}
-            <span className="font-medium">ⓘ</span> to see what a number means.
-          </p>
-        </div>
-        <DateRangeFilter from={from} to={to} />
+      <div className="animate-rise mb-5">
+        <WelcomeBanner
+          title={greeting(me?.name)}
+          subtitle={
+            <>
+              Here is how DavoChain is doing{from || to ? ' for the dates you picked' : ''}. Hover over any{' '}
+              <span className="font-medium">ⓘ</span> to see what a number means.
+            </>
+          }
+          figures={
+            snapshot
+              ? [
+                  { label: 'Earned on buys and sells', value: formatNaira(snapshot.earnings.rateFeeNgn, 0) },
+                  { label: 'Earned on swaps', value: formatUsd(snapshot.earnings.swapFeeUsd) },
+                  { label: 'Transactions', value: snapshot.transactions.total.toLocaleString('en-US') },
+                ]
+              : []
+          }
+          action={<DateRangeFilter from={from} to={to} />}
+        />
       </div>
 
       <div className="stagger flex flex-col gap-5">
@@ -183,6 +236,7 @@ export default async function OverviewPage({
             icon={Users}
             tone="blue"
             tip={TIPS.overview.totalUsers}
+            link={can('users.view') ? { href: '/users', label: 'See customers' } : undefined}
           />
           <StatCard
             label="Active customers"
@@ -199,12 +253,14 @@ export default async function OverviewPage({
             icon={UserX}
             tone="rose"
             tip={TIPS.overview.suspendedUsers}
+            link={can('users.view') ? { href: '/limits', label: 'Daily limits' } : undefined}
           />
           <SplitStatCard
             label="Identity checks"
             icon={ShieldCheck}
             tone="green"
             tip={TIPS.overview.kyc}
+            link={can('kyc.view') ? { href: '/kyc', label: 'Review checks' } : undefined}
             parts={[
               { label: 'Approved', value: snapshot?.users.kycApproved ?? '—' },
               { label: 'Pending', value: snapshot?.users.kycPending ?? '—' },
@@ -212,8 +268,13 @@ export default async function OverviewPage({
           />
         </div>
 
-        {/* Counts, on one line. What the money was worth lives in the wallets. */}
+        {/* Counts, with the last 7 days beside them. */}
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div className={weekly ? 'lg:col-span-2' : 'lg:col-span-3'}>
         <SplitStatCard
+          className="h-full"
+          columns={weekly ? 4 : undefined}
+          link={can('transactions.view') ? { href: '/transactions', label: 'See transactions' } : undefined}
           label="Transactions"
           icon={ArrowLeftRight}
           tone="blue"
@@ -229,6 +290,18 @@ export default async function OverviewPage({
             { label: 'Failed', value: snapshot?.transactions.failed ?? '—' },
           ]}
         />
+          </div>
+          {weekly ? (
+            <PanelCard
+              title="Last 7 days"
+              tip="How many transactions started on each of the last 7 days (Lagos time), whatever the date filter says."
+              icon={ChartSpline}
+              tone="blue"
+            >
+              <WeeklyArea data={weekly} />
+            </PanelCard>
+          ) : null}
+        </div>
 
         {/* The same numbers as pictures: bars grow and the ring sweeps in. */}
         {snapshot ? (
@@ -406,13 +479,14 @@ export default async function OverviewPage({
                 <TableRow>
                   <TableHead className="pl-5">Coin</TableHead>
                   <TableHead className="text-right">Held</TableHead>
+                  <TableHead className="w-36">Stock level</TableHead>
                   <TableHead className="text-right">Price vs what we paid</TableHead>
                   <TableHead className="pr-5 text-right">Profit missed / day</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {inventory.length === 0 ? (
-                  <TableEmpty colSpan={4}>No coins set up on the Inventory desk yet.</TableEmpty>
+                  <TableEmpty colSpan={5}>No coins set up on the Inventory desk yet.</TableEmpty>
                 ) : (
                   inventory.slice(0, 6).map((row) => (
                     <TableRow key={row.asset}>
@@ -424,6 +498,9 @@ export default async function OverviewPage({
                       </TableCell>
                       <TableCell className="text-right font-mono text-xs">
                         {formatCoin(row.held)}
+                      </TableCell>
+                      <TableCell>
+                        <StockBar level={stockLevel(row)} low={row.belowFloor} />
                       </TableCell>
                       <TableCell
                         className={`text-right font-mono text-xs ${
@@ -453,13 +530,6 @@ export default async function OverviewPage({
             // Takes the whole row when the inventory panel beside it is hidden,
             // rather than sitting at two fifths width with a gap next to it.
             className={canSeeDesk ? 'lg:col-span-2' : 'lg:col-span-5'}
-            action={
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/transactions">
-                  All <ArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            }
           >
             <div className="flex flex-col px-5 pb-5">
               {transactions.length === 0 ? (
@@ -474,7 +544,7 @@ export default async function OverviewPage({
                       {timeOfDay(tx.createdAt)}
                     </span>
                     <div className="flex flex-col items-center">
-                      <span className="border-primary/70 bg-card mt-1 size-3 shrink-0 rounded-full border-2" />
+                      <ActivityIcon type={tx.type} />
                       {i < list.length - 1 ? <span className="bg-border my-1 w-px flex-1" /> : null}
                     </div>
                     <div className="flex min-w-0 flex-1 items-start justify-between gap-3 pb-4">
@@ -484,15 +554,58 @@ export default async function OverviewPage({
                           {tx.user} · {relativeTime(tx.createdAt)}
                         </p>
                       </div>
-                      <StatusBadge status={tx.status} />
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <ActivityAmount tx={tx} />
+                        <StatusBadge status={tx.status} />
+                      </div>
                     </div>
                   </div>
                 ))
               )}
+              {can('transactions.view') ? (
+                <Button asChild className="mt-1 w-full">
+                  <Link href="/transactions">
+                    View all transactions <ArrowRight className="size-3.5" />
+                  </Link>
+                </Button>
+              ) : null}
             </div>
           </PanelCard>
         </div>
       </div>
     </>
+  );
+}
+
+/** The coloured circle for a kind of transaction, on the activity timeline. */
+function ActivityIcon({ type }: { type: string }) {
+  const kind = ACTIVITY_ICON[type] ?? OTHER_ACTIVITY;
+  const Icon = kind.icon;
+  return (
+    <span className={cn('ring-card flex size-7 shrink-0 items-center justify-center rounded-full ring-4', kind.tile)}>
+      <Icon className="size-3.5" />
+    </span>
+  );
+}
+
+/** "+0.00045 BTC" in green, or "−₦1,000.00" for money going out. */
+function ActivityAmount({ tx }: { tx: AdminTransaction }) {
+  const amount = activityAmount(tx);
+  if (!amount) return null;
+  return (
+    <span className={cn('text-xs font-semibold tabular-nums', amount.sign === 'in' ? 'text-success' : 'text-foreground')}>
+      {amount.text}
+    </span>
+  );
+}
+
+/** How full a coin's stock is against its target, as a thin bar. */
+function StockBar({ level, low }: { level: number | null; low: boolean }) {
+  if (level === null) return <span className="text-muted-foreground text-xs">no target</span>;
+  return (
+    <div className="flex items-center gap-2" title={`${level}% of the target stock`}>
+      <Progress value={level} tone={low ? 'warning' : 'default'} className="h-1.5" />
+      <span className="text-muted-foreground w-9 text-right text-xs tabular-nums">{level}%</span>
+    </div>
   );
 }

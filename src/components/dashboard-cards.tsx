@@ -1,4 +1,5 @@
-import type { LucideIcon } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, type LucideIcon } from 'lucide-react';
 import { CountUp } from '@/components/count-up';
 import { InfoTip } from '@/components/info-tip';
 import { cn } from '@/lib/utils';
@@ -50,6 +51,7 @@ export function StatCard({
   icon,
   tone,
   tip,
+  link,
   className,
 }: {
   label: string;
@@ -59,6 +61,8 @@ export function StatCard({
   tone: Tile;
   /** What the figure means, behind an "i". */
   tip?: string;
+  /** A small "See …" button to the page behind the figure. */
+  link?: { href: string; label: string };
   className?: string;
 }) {
   return (
@@ -77,6 +81,7 @@ export function StatCard({
           <CountUp value={value} />
         </p>
         {hint ? <p className="text-muted-foreground t-caption mt-1.5">{hint}</p> : null}
+        {link ? <CardLink {...link} /> : null}
       </div>
       <IconTile icon={icon} tone={tone} />
     </div>
@@ -93,15 +98,27 @@ export function SplitStatCard({
   icon,
   tone,
   tip,
+  link,
+  columns,
+  className,
 }: {
   label: string;
   parts: { label: string; value: string | number }[];
   icon: LucideIcon;
   tone: Tile;
   tip?: string;
+  link?: { href: string; label: string };
+  /** A fixed number of columns; otherwise as many as fit. */
+  columns?: number;
+  className?: string;
 }) {
   return (
-    <div className="from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift">
+    <div
+      className={cn(
+        'from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift',
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-1.5">
           <p className="text-muted-foreground t-small">{label}</p>
@@ -111,7 +128,9 @@ export function SplitStatCard({
       </div>
       <div
         className="mt-4 grid gap-x-4 gap-y-3"
-        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(84px, 1fr))' }}
+        style={{
+          gridTemplateColumns: columns ? `repeat(${columns}, minmax(0, 1fr))` : 'repeat(auto-fit, minmax(84px, 1fr))',
+        }}
       >
         {parts.map((part) => (
           <div key={part.label} className="min-w-0">
@@ -122,6 +141,7 @@ export function SplitStatCard({
           </div>
         ))}
       </div>
+      {link ? <CardLink {...link} /> : null}
     </div>
   );
 }
@@ -227,5 +247,18 @@ export function PanelCard({
       </div>
       {children}
     </div>
+  );
+}
+
+/** The small outlined "See report →" button under a figure. */
+export function CardLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="bg-card border-border/70 hover:bg-secondary group mt-3 inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium shadow-xs transition-colors"
+    >
+      {label}
+      <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+    </Link>
   );
 }

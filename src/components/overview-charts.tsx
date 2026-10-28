@@ -2,6 +2,8 @@
 
 import { useSyncExternalStore } from 'react';
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -137,6 +139,55 @@ export function MixDonut({ data }: { data: Slice[] }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * Transactions per day for the last 7 days: a smooth line over a soft
+ * gradient, drawn left to right on load (shadcnspace's "Weekly Stats").
+ */
+export function WeeklyArea({ data }: { data: { label: string; value: number }[] }) {
+  const animate = useAnimate();
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const today = data[data.length - 1]?.value ?? 0;
+  return (
+    <div className="flex flex-col gap-2 px-5 pb-5">
+      <div className="flex items-baseline gap-2">
+        <span className="t-figure">{total.toLocaleString('en-US')}</span>
+        <span className="text-muted-foreground t-caption">in 7 days · {today.toLocaleString('en-US')} today</span>
+      </div>
+      <div className="h-40 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 8, right: 18, left: 18, bottom: 0 }}>
+            <defs>
+              <linearGradient id="weekly-fill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              interval={0}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 10.5 }}
+            />
+            <Tooltip cursor={{ stroke: 'var(--border)' }} content={<ChartTip />} />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="var(--chart-1)"
+              strokeWidth={2.25}
+              fill="url(#weekly-fill)"
+              activeDot={{ r: 4.5, strokeWidth: 2, stroke: 'var(--card)' }}
+              isAnimationActive={animate}
+              animationDuration={1100}
+              animationEasing="ease-out"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
