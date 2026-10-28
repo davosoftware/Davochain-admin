@@ -1,5 +1,5 @@
 import { api, ApiError } from '@/lib/api';
-import type { UserListRow, UserStats } from '@/lib/types-admin';
+import type { AdminMe, UserListRow, UserStats } from '@/lib/types-admin';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { Stat } from '@/components/stat';
@@ -19,11 +19,13 @@ export default async function UsersPage({
   if (params.q) query.set('search', params.q);
   if (params.status) query.set('status', params.status);
 
-  const [list, stats] = await Promise.all([
+  const [list, stats, me] = await Promise.all([
     api<{ rows: UserListRow[]; total: number }>(`/v1/admin/users?${query}`).catch(
       (e: ApiError) => e,
     ),
     api<UserStats>('/v1/admin/users/stats').catch(() => null),
+    // Owners see "Close account" on an opened customer.
+    api<AdminMe>('/v1/admin/me').catch(() => null),
   ]);
 
   if (list instanceof ApiError) {
@@ -59,7 +61,7 @@ export default async function UsersPage({
         </Card>
       ) : null}
 
-      <UserTable rows={list.rows} total={list.total} search={params.q ?? ''} />
+      <UserTable rows={list.rows} total={list.total} search={params.q ?? ''} isOwner={me?.role === 'OWNER'} />
     </>
   );
 }

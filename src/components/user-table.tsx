@@ -25,15 +25,20 @@ import { SavedDestinationsList } from '@/components/saved-destinations-list';
 import { DepositAddressesList } from '@/components/deposit-addresses-list';
 import { UserLimitsBox } from '@/components/user-limits-box';
 import { formatDateOfBirth } from '@/lib/date-of-birth';
+import { shownEmail } from '@/lib/account-closure';
+import { CloseAccountSection } from '@/components/close-account';
 
 export function UserTable({
   rows,
   total,
   search,
+  isOwner = false,
 }: {
   rows: UserListRow[];
   total: number;
   search: string;
+  /** Owners see "Close account" on an opened customer (28 Oct 2026). */
+  isOwner?: boolean;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -176,7 +181,7 @@ export function UserTable({
                         ) : null}
                       </TableCell>
                       <TableCell className="text-muted-foreground t-small max-w-[240px] truncate">
-                        {row.email}
+                        {shownEmail(row)}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -191,13 +196,14 @@ export function UserTable({
                         ) : row.status === 'SUSPENDED' ? (
                           <Badge variant="destructive">suspended</Badge>
                         ) : (
-                          <Badge variant="outline">{row.status.toLowerCase()}</Badge>
+                          <Badge variant="secondary">closed</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground t-caption">
                         {relativeTime(row.createdAt)}
                       </TableCell>
                       <TableCell className="pr-4 text-right">
+                        {row.status === 'CLOSED' ? null : (
                         <Button
                           variant={row.status === 'SUSPENDED' ? 'outline' : 'ghost'}
                           size="sm"
@@ -219,6 +225,7 @@ export function UserTable({
                             </>
                           )}
                         </Button>
+                        )}
                       </TableCell>
                     </TableRow>
 
@@ -236,8 +243,8 @@ export function UserTable({
                                 <p className="eyebrow mb-2">Details</p>
                                 <dl className="t-small flex flex-col gap-1.5">
                                   <Row label="Full name" value={`${info.firstName} ${info.lastName}`} />
-                                  <Row label="Email" value={info.email} />
-                                  <Row label="Phone" value={info.phone ?? '—'} />
+                                  <Row label="Email" value={shownEmail(info)} />
+                                  <Row label="Phone" value={info.closedPhone ?? info.phone ?? '—'} />
                                   <Row label="Date of birth" value={formatDateOfBirth(info.kyc?.dateOfBirth)} />
                                   <Row
                                     label="Last seen"
@@ -263,6 +270,14 @@ export function UserTable({
                                     value={info.quidax ? 'provisioned' : 'not yet'}
                                   />
                                 </dl>
+                                {info.status === 'CLOSED' ? (
+                                  <p className="t-caption bg-secondary border-border mt-3 rounded-md border p-2">
+                                    <span className="font-medium">Closed</span>
+                                    {info.closedAt ? ` ${relativeTime(info.closedAt)}` : ''}
+                                    {info.closedReason ? `: ${info.closedReason}` : ''}. Its email and phone were freed for a new
+                                    sign-up; the ones shown here are the originals.
+                                  </p>
+                                ) : null}
                                 {info.suspendedReason ? (
                                   <p className="text-destructive t-caption border-destructive/25 bg-destructive/5 mt-3 rounded-md border p-2">
                                     Suspended: {info.suspendedReason}
@@ -311,6 +326,13 @@ export function UserTable({
                           {info ? <UserLimitsBox userId={row.id} /> : null}
                           {info ? (
                             <DepositAddressesList addresses={info.depositAddresses} onChanged={() => reload(row.id)} />
+                          ) : null}
+                          {info && isOwner && info.status !== 'CLOSED' ? (
+                            <CloseAccountSection
+                              userId={row.id}
+                              name={`${info.firstName} ${info.lastName}`}
+                              onClosed={() => reload(row.id)}
+                            />
                           ) : null}
                         </TableCell>
                       </TableRow>

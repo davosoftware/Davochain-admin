@@ -12,6 +12,8 @@ export interface UserListRow {
   isTest: boolean;
   walletReady: boolean;
   suspendedReason: string | null;
+  /** A closed account's original email; `email` is then a placeholder (28 Oct 2026). */
+  closedEmail?: string | null;
   createdAt: string;
   lastLoginAt: string | null;
 }
@@ -29,6 +31,11 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
   suspendedAt: string | null;
   suspendedReason: string | null;
   suspendedBy: string | null;
+  /** Set when an owner closed the account (28 Oct 2026). */
+  closedAt?: string | null;
+  closedReason?: string | null;
+  closedEmail?: string | null;
+  closedPhone?: string | null;
   transactionCount: number;
   quidax: { quidaxUserId: string; quidaxSn: string; aliasEmail: string } | null;
   kyc: {
