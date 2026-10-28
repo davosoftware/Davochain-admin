@@ -38,6 +38,8 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
     ninLast4: string | null;
     submittedAt: string | null;
     rejectionReason: string | null;
+    /** "YYYY-MM-DD" from the verified BVN/NIN record; null before Basic (28 Oct 2026). */
+    dateOfBirth?: string | null;
   } | null;
   balances: UserBalance[];
   /** Where this customer's withdrawals may go (Part 2). Bank numbers are masked. */

@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { Stat } from '@/components/stat';
 import { KycAdvancedReview } from '@/components/kyc-advanced-review';
+import { AdvancedRejectedList } from '@/components/advanced-rejected-list';
 import { Card, CardContent } from '@/components/ui/card';
 import { TIPS } from '@/lib/tips';
 
@@ -36,6 +37,17 @@ export default async function KycAdvancedPage() {
         description="ID, selfie and proof-of-address checks a rule could not decide. Approving raises the customer's level and signs them out so it applies at once."
       />
 
+      {queue.pretendDojah ? (
+        <div className="border-warning/40 bg-warning/10 mb-5 rounded-lg border p-4">
+          <p className="t-small font-medium">Test mode: Dojah is pretend on this server</p>
+          <p className="text-muted-foreground t-caption mt-0.5">
+            No real document is read. The pretend ID reader always says &quot;SOMEONE CLEAN, born 3 Mar 1995&quot;, so it
+            only matches a customer who did Basic with the test number 33333333333. Anyone else is rejected for a
+            different date of birth. On the live server (real Dojah), the customer&apos;s own ID is read.
+          </p>
+        </div>
+      ) : null}
+
       <Card className="mb-5">
         <CardContent className="grid grid-cols-3 gap-6 p-5">
           <Stat label="Waiting" value={queue.waiting} tone={queue.waiting > 0 ? 'warning' : 'default'} tip={TIPS.kycAdvanced.waiting} />
@@ -61,6 +73,8 @@ export default async function KycAdvancedPage() {
           ))}
         </div>
       )}
+
+      <AdvancedRejectedList rows={queue.recentRejected ?? []} />
 
       <p className="text-muted-foreground mt-6 text-sm">
         Only the last four digits of an ID number are stored. The face photo Dojah reads from an ID is never kept. Opening a

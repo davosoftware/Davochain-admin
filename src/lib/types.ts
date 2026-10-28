@@ -156,4 +156,23 @@ export interface AdvancedQueue {
   approvedToday: number;
   rejectedToday: number;
   rows: AdvancedReviewRow[];
+  /** The latest rejections, by the rules or by an admin (28 Oct 2026). */
+  recentRejected?: AdvancedRejectedRow[];
+  /** True when the API runs Dojah in pretend mode: results are test data, not real checks. */
+  pretendDojah?: boolean;
+}
+
+export interface AdvancedRejectedRow {
+  id: string;
+  step: string;
+  createdAt: string;
+  decidedAt: string;
+  user: { id: string; firstName: string; lastName: string; email: string } | null;
+  idType: string | null;
+  addressKind: string | null;
+  rejectCode: string | null;
+  customerMessage: string | null;
+  decidedBy: 'RULES' | 'ADMIN';
+  /** Only for a birth-date mismatch: the ID's date beside the verified one. */
+  dateOfBirth: { onDocument: string | null; verified: string | null } | null;
 }

@@ -24,6 +24,7 @@ import { levelLabel } from '@/lib/levels';
 import { SavedDestinationsList } from '@/components/saved-destinations-list';
 import { DepositAddressesList } from '@/components/deposit-addresses-list';
 import { UserLimitsBox } from '@/components/user-limits-box';
+import { formatDateOfBirth } from '@/lib/date-of-birth';
 
 export function UserTable({
   rows,
@@ -237,6 +238,7 @@ export function UserTable({
                                   <Row label="Full name" value={`${info.firstName} ${info.lastName}`} />
                                   <Row label="Email" value={info.email} />
                                   <Row label="Phone" value={info.phone ?? '—'} />
+                                  <Row label="Date of birth" value={formatDateOfBirth(info.kyc?.dateOfBirth)} />
                                   <Row
                                     label="Last seen"
                                     value={info.lastLoginAt ? relativeTime(info.lastLoginAt) : 'never'}
