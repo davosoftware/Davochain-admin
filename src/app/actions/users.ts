@@ -61,6 +61,18 @@ export async function removeSavedDestination(
   }
 }
 
+/** People → Users: remove an offensive payment username; the customer is told the reason (28 Oct 2026). */
+export async function removePayUsername(userId: string, reason: string): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api(`/v1/admin/users/${encodeURIComponent(userId)}/pay-username`, { method: 'DELETE', body: JSON.stringify({ reason }) });
+    revalidatePath('/users');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: err instanceof ApiError ? err.message : 'Could not remove the username' };
+  }
+}
+
 export async function sendBroadcast(input: {
   title: string;
   body: string;

@@ -1,5 +1,6 @@
 'use client';
 
+import { peerLine } from '@/lib/peer';
 import { Fragment, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -471,6 +472,9 @@ export function TransactionsManager({
                         </TableCell>
                         <TableCell className="t-small font-medium whitespace-nowrap">
                           {row.name || '—'}
+                          {peerLine(row) ? (
+                            <span className="text-muted-foreground t-caption block font-normal">{peerLine(row)}</span>
+                          ) : null}
                         </TableCell>
                         <TableCell className="text-muted-foreground t-small max-w-[11rem] truncate">
                           {row.email}

@@ -1,3 +1,5 @@
+import type { PeerSide } from './peer';
+
 export interface UserListRow {
   /** 1 is the most recent sign-up. Continues across pages. */
   serial: number;
@@ -36,6 +38,8 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
   closedReason?: string | null;
   closedEmail?: string | null;
   closedPhone?: string | null;
+  /** The name other customers send crypto to (28 Oct 2026); null until chosen. */
+  payUsername?: string | null;
   /** When the personal data is due to be deleted, or was (28 Oct 2026). */
   dataDeleteAt?: string | null;
   dataDeletedAt?: string | null;
@@ -493,6 +497,8 @@ export interface TxLeg {
  * amount + fee = total on every row.
  */
 export interface TxRow {
+  /** The other DavoChain customer in a send between two customers (28 Oct 2026). */
+  peer?: PeerSide | null;
   id: string;
   reference: string;
   type: string;
