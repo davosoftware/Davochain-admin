@@ -2,6 +2,8 @@ import Link from 'next/link';
 import {
   ArrowLeftRight,
   ArrowRight,
+  ChartColumn,
+  ChartPie,
   Coins,
   Fuel,
   PiggyBank,
@@ -16,6 +18,8 @@ import type { DriftRow, FuelLevel, InventoryRow, AdminTransaction } from '@/lib/
 import type { AdminMe, OverviewSnapshot } from '@/lib/types-admin';
 import { StartHere } from '@/components/start-here';
 import { AttentionPanel } from '@/components/attention-panel';
+import { CryptoBarChart, MixDonut } from '@/components/overview-charts';
+import { cryptoBars, timeOfDay, transactionMix } from '@/lib/overview-charts';
 import { activityLine, attentionItems, greeting } from '@/lib/overview';
 import { DateRangeFilter } from '@/components/date-range-filter';
 import { TIPS } from '@/lib/tips';
@@ -226,6 +230,30 @@ export default async function OverviewPage({
           ]}
         />
 
+        {/* The same numbers as pictures: bars grow and the ring sweeps in. */}
+        {snapshot ? (
+          <div className="grid gap-5 lg:grid-cols-5">
+            <PanelCard
+              title="Crypto moved, in dollars"
+              tip="Coin movements added up in dollars, each priced when it happened. Hover over a bar for the exact amount."
+              icon={ChartColumn}
+              tone="blue"
+              className="lg:col-span-3"
+            >
+              <CryptoBarChart data={cryptoBars(snapshot.crypto)} />
+            </PanelCard>
+            <PanelCard
+              title="Transaction mix"
+              tip="How many transactions of each kind, and their share of the total."
+              icon={ChartPie}
+              tone="violet"
+              className="lg:col-span-2"
+            >
+              <MixDonut data={transactionMix(snapshot.transactions)} />
+            </PanelCard>
+          </div>
+        ) : null}
+
         {/* The two wallets. items-start so the shorter card keeps its own
             height instead of being stretched into a panel of empty space. */}
         <div className="grid items-start gap-5 xl:grid-cols-2">
@@ -433,21 +461,31 @@ export default async function OverviewPage({
               </Button>
             }
           >
-            <div className="flex flex-col gap-3 px-5 pb-5">
+            <div className="flex flex-col px-5 pb-5">
               {transactions.length === 0 ? (
                 <p className="text-muted-foreground py-6 text-center text-sm">
                   No transactions yet. They appear here as customers buy, sell and swap.
                 </p>
               ) : (
-                transactions.slice(0, 6).map((tx) => (
-                  <div key={tx.id} className="flex items-center justify-between gap-3 text-sm">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{activityLine(tx)}</p>
-                      <p className="text-muted-foreground truncate text-xs">
-                        {tx.user} · {relativeTime(tx.createdAt)}
-                      </p>
+                // A timeline: the time, a ring on a line, then what happened.
+                transactions.slice(0, 6).map((tx, i, list) => (
+                  <div key={tx.id} className="flex gap-3 text-sm">
+                    <span className="text-muted-foreground w-10 shrink-0 pt-0.5 text-right text-xs font-medium tabular-nums">
+                      {timeOfDay(tx.createdAt)}
+                    </span>
+                    <div className="flex flex-col items-center">
+                      <span className="border-primary/70 bg-card mt-1 size-3 shrink-0 rounded-full border-2" />
+                      {i < list.length - 1 ? <span className="bg-border my-1 w-px flex-1" /> : null}
                     </div>
-                    <StatusBadge status={tx.status} />
+                    <div className="flex min-w-0 flex-1 items-start justify-between gap-3 pb-4">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{activityLine(tx)}</p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {tx.user} · {relativeTime(tx.createdAt)}
+                        </p>
+                      </div>
+                      <StatusBadge status={tx.status} />
+                    </div>
                   </div>
                 ))
               )}

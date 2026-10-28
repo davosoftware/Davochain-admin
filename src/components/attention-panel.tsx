@@ -31,7 +31,16 @@ export function AttentionPanel({ items }: { items: AttentionItem[] }) {
   return (
     <section className="bg-card border-border/60 rounded-xl border shadow-xs p-5">
       <h2 className="t-section mb-3">
-        Needs your attention <span className="text-muted-foreground font-normal">({items.length})</span>
+        <span className="inline-flex items-center gap-2">
+          {items.some((i) => i.tone === 'danger') ? (
+            // The reference dashboard's "ping": a red dot with a ripple, only while something is urgent.
+            <span className="relative flex size-2.5" aria-hidden>
+              <span className="bg-destructive absolute inline-flex size-full animate-ping rounded-full opacity-60" />
+              <span className="bg-destructive relative inline-flex size-2.5 rounded-full" />
+            </span>
+          ) : null}
+          Needs your attention <span className="text-muted-foreground font-normal">({items.length})</span>
+        </span>
       </h2>
       <ul className="flex flex-col gap-2.5">
         {items.map((item) => {

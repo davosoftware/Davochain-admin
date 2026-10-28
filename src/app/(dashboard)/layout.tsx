@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
 import { logout } from '@/app/actions/auth';
@@ -13,6 +14,7 @@ import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from '@/components/mobile-nav';
+import { RouteProgress } from '@/components/route-progress';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const token = await getToken();
@@ -33,6 +35,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="bg-sidebar flex min-h-screen">
+      <Suspense fallback={null}>
+        <RouteProgress />
+      </Suspense>
       {/*
         * Sidebar: pinned on desktop, a sheet on mobile.
         *

@@ -216,7 +216,7 @@ export function PanelCard({
   className?: string;
 }) {
   return (
-    <div className={cn('bg-card border-border/60 flex flex-col rounded-xl border', className)}>
+    <div className={cn('bg-card border-border/60 flex flex-col rounded-xl border shadow-xs', className)}>
       <div className="flex items-center gap-3 p-5 pb-4">
         <IconTile icon={icon} tone={tone} size="sm" />
         <div className="flex flex-1 items-center gap-1.5">
