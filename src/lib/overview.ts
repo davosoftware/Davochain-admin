@@ -123,3 +123,8 @@ export const STATUS_HELP: Record<string, string> = {
   FAILED: 'Did not go through. Open it to see why.',
   REJECTED: 'Turned down by an admin.',
 };
+
+/** Statuses where something is still happening; their badge dot gently pulses. */
+export function isInFlight(status: string): boolean {
+  return status === 'PENDING' || status === 'PROCESSING' || status === 'RECONCILING';
+}

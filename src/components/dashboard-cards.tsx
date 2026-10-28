@@ -64,7 +64,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'from-primary/5 to-card dark:bg-card bg-linear-to-t border-border/60 flex items-start justify-between gap-4 rounded-xl border p-5 shadow-xs',
+        'from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 flex items-start justify-between gap-4 rounded-xl border p-5 shadow-xs lift',
         className,
       )}
     >
@@ -101,7 +101,7 @@ export function SplitStatCard({
   tip?: string;
 }) {
   return (
-    <div className="from-primary/5 to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs">
+    <div className="from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-1.5">
           <p className="text-muted-foreground t-small">{label}</p>
@@ -158,7 +158,7 @@ export function WalletCard({
 }) {
   const wide = { 2: 'xl:grid-cols-2', 3: 'xl:grid-cols-3', 4: 'xl:grid-cols-4' }[columns];
   return (
-    <div className="from-primary/5 to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs">
+    <div className="from-secondary to-card dark:bg-card bg-linear-to-t border-border/60 rounded-xl border p-5 shadow-xs lift">
       <div className="flex items-center gap-3">
         <IconTile icon={icon} tone={tone} />
         <div className="min-w-0">

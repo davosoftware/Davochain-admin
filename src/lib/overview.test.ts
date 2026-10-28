@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { STATUS_HELP, activityLine, assetPath, attentionItems, greeting, humanType } from './overview.ts';
+import { STATUS_HELP, activityLine, isInFlight, assetPath, attentionItems, greeting, humanType } from './overview.ts';
 
 test('the greeting follows the time of day in Lagos and uses the first name', () => {
   // 07:00 UTC is 08:00 in Lagos.
@@ -95,4 +95,9 @@ test('every status explains itself on hover', () => {
     assert.ok(STATUS_HELP[s], `no help for ${s}`);
   }
   assert.match(STATUS_HELP.RECONCILING, /held/);
+});
+
+test('only statuses still moving pulse', () => {
+  for (const s of ['PENDING', 'PROCESSING', 'RECONCILING']) assert.equal(isInFlight(s), true, s);
+  for (const s of ['COMPLETED', 'FAILED', 'ON_HOLD', 'REJECTED', 'APPROVED', 'weird']) assert.equal(isInFlight(s), false, s);
 });

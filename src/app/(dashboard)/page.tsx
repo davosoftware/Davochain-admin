@@ -123,7 +123,7 @@ export default async function OverviewPage({
         <DateRangeFilter from={from} to={to} />
       </div>
 
-      <div className="flex flex-col gap-5">
+      <div className="stagger flex flex-col gap-5">
         {/* What needs someone, first, with a link to the page that fixes it. */}
         <AttentionPanel items={attention} />
 

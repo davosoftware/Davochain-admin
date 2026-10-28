@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import { STATUS_HELP } from '@/lib/overview';
+import { STATUS_HELP, isInFlight } from '@/lib/overview';
+import { cn } from '@/lib/utils';
 
 const TONE: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' | 'default'> = {
   COMPLETED: 'success',
@@ -19,7 +20,7 @@ const TONE: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' |
 export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge variant={TONE[status] ?? 'outline'} title={STATUS_HELP[status]}>
-      <span aria-hidden className="size-1.5 rounded-full bg-current opacity-80" />
+      <span aria-hidden className={cn('size-1.5 rounded-full bg-current opacity-80', isInFlight(status) && 'animate-soft-pulse')} />
       {status.replace(/_/g, ' ').toLowerCase()}
     </Badge>
   );
