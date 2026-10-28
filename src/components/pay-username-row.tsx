@@ -7,8 +7,9 @@ import { payUsernameLabel } from '@/lib/peer';
 
 /**
  * The customer's payment username (28 Oct 2026), the name others send crypto
- * to. An offensive one can be removed with a reason the customer is told; the
- * name is then kept from everyone else for 30 days. Needs "Suspend and
+ * to. An offensive one can be removed with a reason the customer is told; they
+ * get a new generated one at once, and the old name is kept from everyone else
+ * for 30 days. Needs "Suspend and
  * reinstate users"; audited.
  */
 export function PayUsernameRow({ userId, username, onChanged }: { userId: string; username?: string | null; onChanged: () => void }) {
@@ -24,7 +25,11 @@ export function PayUsernameRow({ userId, username, onChanged }: { userId: string
         toast.error('Could not remove', { description: result.error });
         return;
       }
-      toast.success(`${label} removed`, { description: 'The customer was told why and can choose a new one.' });
+      toast.success(`${label} removed`, {
+        description: result.newUsername
+          ? `They now have @${result.newUsername} and were told why. They can choose another.`
+          : 'The customer was told why and can choose a new one.',
+      });
       onChanged();
     });
 
