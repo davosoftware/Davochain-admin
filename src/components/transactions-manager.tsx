@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/table';
 import { DateRangeFilter } from '@/components/date-range-filter';
 import { cn, formatCoin, formatNaira, formatUsd, relativeTime } from '@/lib/utils';
+import { assetPath, humanType } from '@/lib/overview';
 
 /**
  * One tab per kind of transaction, plus the queue of things waiting on a
@@ -74,9 +75,9 @@ const TYPES = [
 ];
 
 const AMOUNT_TYPES = [
-  { value: '', label: 'Any amount type' },
-  { value: 'CREDIT', label: 'Credit — money in' },
-  { value: 'DEBIT', label: 'Debit — money out' },
+  { value: '', label: 'Money in or out' },
+  { value: 'CREDIT', label: 'Money in (credit)' },
+  { value: 'DEBIT', label: 'Money out (debit)' },
 ];
 
 const MODES = [
@@ -97,6 +98,7 @@ const TYPE_LABEL: Record<string, string> = {
   WITHDRAWAL: 'Withdrawal',
   FEE_CLAIM: 'Fee claim',
   INTERNAL: 'Internal',
+  GIFT_CARD: 'Gift card sale',
 };
 
 /** Money in the unit the row states, which may be naira, dollars or a coin. */
@@ -315,12 +317,12 @@ export function TransactionsManager({
           <ShieldAlert className="text-warning mt-0.5 size-4 shrink-0" />
           <div>
             <p className="t-small font-medium">
-              {data.stuck} transaction{data.stuck === 1 ? '' : 's'} reconciling
+              {data.stuck} transaction{data.stuck === 1 ? '' : 's'} waiting for a check (&quot;reconciling&quot;)
             </p>
             <p className="text-muted-foreground t-caption mt-0.5">
-              The outcome is genuinely unknown and the funds are deliberately held. A worker is
-              polling Quidax. <strong>Do not refund these</strong> — there is no button here that
-              would, and resolving one by hand is how somebody gets paid twice.{' '}
+              The provider did not give a clear answer, so we do not know yet whether the money moved.
+              It is held on purpose while our system keeps asking. <strong>Do not refund these by
+              hand</strong>: if the money did move, the customer would be paid twice.{' '}
               <Link href="?status=RECONCILING" className="text-primary hover:underline">
                 Show them
               </Link>
@@ -433,8 +435,8 @@ export function TransactionsManager({
                 <TableHead className="text-right">Total Amount</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="text-right">Fee</TableHead>
-                <TableHead>Transaction Type</TableHead>
-                <TableHead>Amount Type</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>In / out</TableHead>
                 <TableHead>Mode of payment</TableHead>
                 <TableHead>Created On</TableHead>
                 <TableHead>Status</TableHead>
@@ -492,17 +494,17 @@ export function TransactionsManager({
                           {money(row.fee, row.unit)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <span className="t-small">{TYPE_LABEL[row.type] ?? row.type}</span>
+                          <span className="t-small">{TYPE_LABEL[row.type] ?? humanType(row.type)}</span>
                           <span className="text-muted-foreground t-caption block font-mono">
-                            {[row.fromAsset, row.toAsset]
-                              .filter(Boolean)
-                              .map((a) => a!.toUpperCase())
-                              .join(' → ') || '—'}
+                            {assetPath(row.fromAsset, row.toAsset) || '—'}
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={row.amountType === 'CREDIT' ? 'success' : 'outline'}>
-                            {row.amountType}
+                          <Badge
+                            variant={row.amountType === 'CREDIT' ? 'success' : 'outline'}
+                            title={row.amountType === 'CREDIT' ? 'Credit: money into the customer’s account' : 'Debit: money out of the customer’s account'}
+                          >
+                            {row.amountType === 'CREDIT' ? 'Money in' : row.amountType === 'DEBIT' ? 'Money out' : row.amountType}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground t-small whitespace-nowrap">

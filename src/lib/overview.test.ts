@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { activityLine, attentionItems, greeting } from './overview.ts';
+import { STATUS_HELP, activityLine, assetPath, attentionItems, greeting, humanType } from './overview.ts';
 
 test('the greeting follows the time of day in Lagos and uses the first name', () => {
   // 07:00 UTC is 08:00 in Lagos.
@@ -75,7 +75,24 @@ test('items for pages the admin cannot open are left out', () => {
 
 test('activity lines read as words, not codes', () => {
   assert.equal(activityLine({ type: 'BUY', fromAsset: 'ngn', toAsset: 'btc' }), 'Buy · NGN → BTC');
-  assert.equal(activityLine({ type: 'ADJUSTMENT', fromAsset: 'btc', toAsset: null }), 'Adjustment · BTC');
+  assert.equal(activityLine({ type: 'ADJUSTMENT', fromAsset: 'btc', toAsset: null }), 'Balance adjustment · BTC');
   assert.equal(activityLine({ type: 'WITHDRAWAL', fromAsset: 'ngn', toAsset: 'ngn' }), 'Withdrawal · NGN');
   assert.equal(activityLine({ type: 'GIFT_CARD', fromAsset: null, toAsset: null }), 'Gift card');
+});
+
+test('transaction codes become words', () => {
+  assert.equal(humanType('ADJUSTMENT'), 'Balance adjustment');
+  assert.equal(humanType('GIFT_CARD'), 'Gift card');
+  assert.equal(humanType('FEE_CLAIM'), 'Fee claim');
+  assert.equal(assetPath('ngn', 'ngn'), 'NGN');
+  assert.equal(assetPath('usdt', 'btc'), 'USDT → BTC');
+  assert.equal(assetPath(null, 'btc'), 'BTC');
+  assert.equal(assetPath(null, null), '');
+});
+
+test('every status explains itself on hover', () => {
+  for (const s of ['COMPLETED', 'PENDING', 'PROCESSING', 'ON_HOLD', 'RECONCILING', 'FAILED']) {
+    assert.ok(STATUS_HELP[s], `no help for ${s}`);
+  }
+  assert.match(STATUS_HELP.RECONCILING, /held/);
 });

@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { STATUS_HELP } from '@/lib/overview';
 
 const TONE: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' | 'default'> = {
   COMPLETED: 'success',
@@ -17,6 +18,8 @@ const TONE: Record<string, 'success' | 'warning' | 'destructive' | 'secondary' |
  */
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <Badge variant={TONE[status] ?? 'outline'}>{status.replace(/_/g, ' ').toLowerCase()}</Badge>
+    <Badge variant={TONE[status] ?? 'outline'} title={STATUS_HELP[status]}>
+      {status.replace(/_/g, ' ').toLowerCase()}
+    </Badge>
   );
 }

@@ -87,13 +87,39 @@ export function attentionItems(input: {
   return items;
 }
 
-const TYPE_WORDS: Record<string, string> = { GIFT_CARD: 'Gift card' };
+const TYPE_WORDS: Record<string, string> = {
+  ADJUSTMENT: 'Balance adjustment',
+  GIFT_CARD: 'Gift card',
+};
 
-/** "Buy · NGN → BTC", "Withdrawal · NGN", "Adjustment · BTC". */
-export function activityLine(tx: { type: string; fromAsset: string | null; toAsset: string | null }): string {
-  const word = TYPE_WORDS[tx.type] ?? tx.type.charAt(0) + tx.type.slice(1).toLowerCase().replace(/_/g, ' ');
-  const from = tx.fromAsset?.toUpperCase();
-  const to = tx.toAsset?.toUpperCase();
-  const assets = from && to && from !== to ? `${from} → ${to}` : (from ?? to);
-  return assets ? `${word} · ${assets}` : word;
+/** A transaction type code in words: "BUY" → "Buy", "FEE_CLAIM" → "Fee claim". */
+export function humanType(type: string): string {
+  return TYPE_WORDS[type] ?? type.charAt(0) + type.slice(1).toLowerCase().replace(/_/g, ' ');
 }
+
+/** "USDT → BTC", or just "NGN" when both sides are the same coin. */
+export function assetPath(fromAsset: string | null | undefined, toAsset: string | null | undefined): string {
+  const from = fromAsset?.toUpperCase();
+  const to = toAsset?.toUpperCase();
+  if (from && to && from !== to) return `${from} → ${to}`;
+  return from ?? to ?? '';
+}
+
+/** "Buy · NGN → BTC", "Withdrawal · NGN", "Balance adjustment · BTC". */
+export function activityLine(tx: { type: string; fromAsset: string | null; toAsset: string | null }): string {
+  const assets = assetPath(tx.fromAsset, tx.toAsset);
+  return assets ? `${humanType(tx.type)} · ${assets}` : humanType(tx.type);
+}
+
+/** What each status means, shown when you hover over its badge. */
+export const STATUS_HELP: Record<string, string> = {
+  COMPLETED: 'Finished. The money has moved.',
+  APPROVED: 'Approved by an admin.',
+  PENDING: 'Started, not finished yet. Most finish on their own within minutes.',
+  PROCESSING: 'With the provider (Quidax or Payrep) right now.',
+  ON_HOLD: 'Stopped for an admin to approve, usually because it is over a limit.',
+  RECONCILING:
+    'The provider did not give a clear answer, so the money is held, not refunded, while our system keeps checking. Do not refund it by hand.',
+  FAILED: 'Did not go through. Open it to see why.',
+  REJECTED: 'Turned down by an admin.',
+};
