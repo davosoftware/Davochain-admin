@@ -10,9 +10,9 @@ const RANGE = 'Follows the dates picked at the top of the page (all time if none
 export const TIPS = {
   overview: {
     nairaFuel:
-      'Naira we keep at Quidax to buy coins when our own stock runs out. "Days of cover" is how long it lasts at the current daily burn.',
+      'Naira we keep at Quidax to buy coins when our own stock runs out. "Lasts about" is how many days it covers at the current rate of use.',
     dailyBurn:
-      'Average naira spent per day over the last 7 days buying coins from Quidax because our own stock was too low.',
+      'Average naira used per day over the last 7 days to buy coins from Quidax because our own stock was too low.',
     coinsBelowFloor:
       'Coins whose stock has fallen under the minimum set on the Inventory page. Buys of these coins cost us more until you restock.',
     marginForgone:
@@ -26,7 +26,7 @@ export const TIPS = {
     cryptoWallet: `Coin movements added up in dollars, each priced at the moment it happened, so old totals never change with today's prices. ${RANGE}`,
     earnings: `What the platform kept from completed transactions, in the currency each fee was charged in. Naira and dollars are never added together. ${RANGE}`,
     inventoryPanel:
-      'The coins most in need of a restock. "vs avg" compares the price now with what we paid on average; "Lost / day" is profit missed while stock is low.',
+      'The coins most in need of a restock. "Price vs what we paid" compares the price now with what we paid on average; "Profit missed / day" is what we lose while stock is low.',
     recentActivity: 'The latest customer transactions of any kind, newest first. Open "All" to search and filter them.',
   },
 

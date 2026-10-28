@@ -15,6 +15,8 @@ import { api, ApiError } from '@/lib/api';
 import type { DriftRow, FuelLevel, InventoryRow, AdminTransaction } from '@/lib/types';
 import type { AdminMe, OverviewSnapshot } from '@/lib/types-admin';
 import { StartHere } from '@/components/start-here';
+import { AttentionPanel } from '@/components/attention-panel';
+import { activityLine, attentionItems, greeting } from '@/lib/overview';
 import { DateRangeFilter } from '@/components/date-range-filter';
 import { TIPS } from '@/lib/tips';
 import { ErrorState } from '@/components/error-state';
@@ -64,7 +66,7 @@ export default async function OverviewPage({
   const canSeeDesk = me?.permissions.includes('inventory.view') ?? false;
   const noRows = <T,>() => Promise.resolve([] as T[]);
 
-  const [fuel, inventory, drift, transactions, snapshot] = await Promise.all([
+  const [fuel, inventory, drift, transactions, snapshot, reconciling] = await Promise.all([
     // Null means "not cleared to see it"; an ApiError means it was asked for
     // and genuinely failed. Those are different and must not look the same.
     canSeeDesk
@@ -86,6 +88,8 @@ export default async function OverviewPage({
         return s ? `?${s}` : '';
       })()}`,
     ).catch(() => null),
+    // Only counted, for "Needs your attention". 100 is plenty to say "100+".
+    api<AdminTransaction[]>('/v1/admin/transactions?status=RECONCILING&limit=100').catch(() => [] as AdminTransaction[]),
   ]);
 
   const deskFailed = fuel instanceof ApiError ? fuel : null;
@@ -97,71 +101,66 @@ export default async function OverviewPage({
   const low = inventory.filter((r) => r.belowFloor);
   const broken = drift.filter((d) => !d.withinTolerance && !d.partial);
   const marginLost = inventory.reduce((s, r) => s + Number(r.marginLostPerDayNgn || 0), 0);
+  const attention = attentionItems({
+    permissions: me?.permissions ?? [],
+    daysOfCover,
+    lowCoins: low.map((r) => r.asset),
+    driftCoins: broken.map((b) => b.asset),
+    pending: Number(snapshot?.transactions.pending ?? 0),
+    reconciling: reconciling.length,
+  });
 
   return (
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="t-display">Overview</h1>
-          <p className="text-muted-foreground t-body mt-1">Welcome back to Davochain</p>
+          <h1 className="t-display">{greeting(me?.name)}</h1>
+          <p className="text-muted-foreground t-body mt-1">
+            Here is how DavoChain is doing{from || to ? ' for the dates you picked' : ''}. Hover over any{' '}
+            <span className="font-medium">ⓘ</span> to see what a number means.
+          </p>
         </div>
         <DateRangeFilter from={from} to={to} />
       </div>
 
-      {/* The two things that can actually wake someone up, first. */}
-      {(daysOfCover !== null && daysOfCover < 3) || broken.length > 0 ? (
-        <div className="mb-5 flex flex-col gap-3">
-          {daysOfCover !== null && daysOfCover < 3 ? (
-            <ErrorState
-              title={
-                daysOfCover < 1
-                  ? 'Naira fuel critical — buys will start failing'
-                  : `Naira fuel low — ${level?.daysOfCover} days of cover`
-              }
-              detail="This funds the fallback swap when a coin runs out. When it empties, buys fail outright. Top up the Quidax NGN wallet."
-            />
-          ) : null}
-          {broken.length > 0 ? (
-            <ErrorState
-              title={`Reconciliation drift on ${broken.map((b) => b.asset.toUpperCase()).join(', ')}`}
-              detail="The ledger and the sub-account balances disagree. Investigate before it grows."
-            />
-          ) : null}
-        </div>
-      ) : null}
-
       <div className="flex flex-col gap-5">
+        {/* What needs someone, first, with a link to the page that fixes it. */}
+        <AttentionPanel items={attention} />
+
         {/* Stock and naira for buys, first, because running out is what stops trading. */}
         {level ? (
           <WalletCard
             title="Stock and naira for buys"
-            subtitle="What keeps buys settling"
+            subtitle="What lets customers' buys go through"
             icon={Fuel}
             tone={daysOfCover !== null && daysOfCover < 3 ? 'rose' : 'amber'}
             columns={4}
             stats={[
               {
-                label: 'Naira fuel',
+                label: 'Naira for buys',
                 value: formatNaira(level.balanceNgn, 0),
-                hint: `${level.daysOfCover} days of cover`,
+                hint:
+                  Number(level.dailyBurnNgn) > 0
+                    ? `lasts about ${Number(level.daysOfCover) >= 10 ? Math.round(Number(level.daysOfCover)) : level.daysOfCover} days`
+                    : 'not used in the last 7 days',
                 tip: TIPS.overview.nairaFuel,
               },
               {
-                label: 'Daily burn',
+                label: 'Naira used per day',
                 value: formatNaira(level.dailyBurnNgn, 0),
-                hint: 'fallback swaps, 7-day average',
+                hint: 'buying from Quidax, 7-day average',
                 tip: TIPS.overview.dailyBurn,
               },
               {
-                label: 'Coins below floor',
+                label: 'Coins running low',
                 value: String(low.length),
-                hint: low.length ? low.map((r) => r.asset.toUpperCase()).join(', ') : 'all stocked',
+                hint: low.length ? low.map((r) => r.asset.toUpperCase()).join(', ') : 'all well stocked',
                 tip: TIPS.overview.coinsBelowFloor,
               },
               {
-                label: 'Margin forgone',
+                label: 'Profit missed per day',
                 value: formatNaira(marginLost, 0),
-                hint: 'per day, running on fallback',
+                hint: 'while coins are low',
                 tip: TIPS.overview.marginForgone,
               },
             ]}
@@ -174,7 +173,7 @@ export default async function OverviewPage({
         {/* People. */}
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            label="Total Users"
+            label="Customers"
             value={snapshot?.users.total ?? '—'}
             hint="every account ever registered"
             icon={Users}
@@ -182,7 +181,7 @@ export default async function OverviewPage({
             tip={TIPS.overview.totalUsers}
           />
           <StatCard
-            label="Total Active Users"
+            label="Active customers"
             value={snapshot?.users.active ?? '—'}
             hint="can sign in and trade"
             icon={UserCheck}
@@ -190,7 +189,7 @@ export default async function OverviewPage({
             tip={TIPS.overview.activeUsers}
           />
           <StatCard
-            label="Suspended Users"
+            label="Suspended"
             value={snapshot?.users.suspended ?? '—'}
             hint={snapshot?.users.suspended ? 'cannot sign in' : 'nobody suspended'}
             icon={UserX}
@@ -198,7 +197,7 @@ export default async function OverviewPage({
             tip={TIPS.overview.suspendedUsers}
           />
           <SplitStatCard
-            label="KYC"
+            label="Identity checks"
             icon={ShieldCheck}
             tone="green"
             tip={TIPS.overview.kyc}
@@ -231,43 +230,43 @@ export default async function OverviewPage({
             height instead of being stretched into a panel of empty space. */}
         <div className="grid items-start gap-5 xl:grid-cols-2">
           <WalletCard
-            title="NGN Wallet"
+            title="Naira"
             subtitle="Naira in, out and held"
             tip={TIPS.overview.ngnWallet}
             icon={Wallet}
             tone="blue"
             stats={[
               {
-                label: 'Total Deposits',
+                label: 'Deposited',
                 value: snapshot ? formatNaira(snapshot.ngn.deposits, 0) : '—',
               },
               {
-                label: 'Total Withdrawals',
+                label: 'Withdrawn',
                 value: snapshot ? formatNaira(snapshot.ngn.withdrawals, 0) : '—',
               },
               {
-                label: 'Spent Buying Crypto',
+                label: 'Spent buying crypto',
                 value: snapshot ? formatNaira(snapshot.ngn.spentBuying, 0) : '—',
               },
               {
-                label: 'Received Selling Crypto',
+                label: 'Received from selling crypto',
                 value: snapshot ? formatNaira(snapshot.ngn.fromSelling, 0) : '—',
               },
               {
-                label: 'Held by Users',
+                label: 'Held by customers',
                 value: snapshot ? formatNaira(snapshot.ngn.available, 0) : '—',
                 hint: 'available to spend',
               },
               {
-                label: 'Locked in Trades',
+                label: 'Locked in trades',
                 value: snapshot ? formatNaira(snapshot.ngn.locked, 0) : '—',
-                hint: 'committed, in flight',
+                hint: 'in trades not finished yet',
               },
             ]}
           />
 
           <WalletCard
-            title="Crypto Wallet"
+            title="Crypto"
             subtitle="Every coin movement in dollars, priced when it happened"
             tip={TIPS.overview.cryptoWallet}
             icon={Coins}
@@ -275,24 +274,24 @@ export default async function OverviewPage({
             columns={3}
             stats={[
               {
-                label: 'Total Buy Crypto',
+                label: 'Bought',
                 value: snapshot ? formatUsd(snapshot.crypto.boughtUsd) : '—',
               },
               {
-                label: 'Total Sell Crypto',
+                label: 'Sold',
                 value: snapshot ? formatUsd(snapshot.crypto.soldUsd) : '—',
               },
               {
-                label: 'Total Swap Crypto',
+                label: 'Swapped',
                 value: snapshot ? formatUsd(snapshot.crypto.swappedUsd) : '—',
               },
               {
-                label: 'Total Deposits',
+                label: 'Deposited',
                 value: snapshot ? formatUsd(snapshot.crypto.depositedUsd) : '—',
                 hint: 'priced on arrival',
               },
               {
-                label: 'Total Withdrawals',
+                label: 'Withdrawn',
                 value: snapshot ? formatUsd(snapshot.crypto.withdrawnUsd) : '—',
                 hint: 'priced on the way out',
               },
@@ -330,27 +329,27 @@ export default async function OverviewPage({
           }
           stats={[
             {
-              label: 'Earned on Buy & Sell',
+              label: 'From buys and sells',
               value: snapshot ? formatNaira(snapshot.earnings.rateFeeNgn) : '—',
               hint: 'the rate fee, folded into every naira trade',
             },
             {
-              label: 'Earned on Swaps',
+              label: 'From swaps',
               value: snapshot ? formatUsd(snapshot.earnings.swapFeeUsd) : '—',
               hint: 'the flat swap fee, charged in dollars',
             },
             {
-              label: 'Earned on Crypto Withdrawals',
+              label: 'From crypto withdrawals',
               value: snapshot ? formatUsd(snapshot.earnings.withdrawalFeeUsd) : '—',
-              hint: 'our share only — the chain keeps its own',
+              hint: 'our fee only; the network fee is not ours',
             },
             {
-              label: 'Earned on Naira Withdrawals',
+              label: 'From naira withdrawals',
               value: snapshot ? formatNaira(snapshot.earnings.ngnWithdrawalFeeNgn) : '—',
               hint: 'cashing out to a bank',
             },
             {
-              label: 'Earned on Gift Cards',
+              label: 'From gift cards',
               value: snapshot ? formatNaira(snapshot.earnings.giftCardProfitNgn) : '—',
               hint: 'what a card cleared at, less what we quoted',
             },
@@ -361,7 +360,7 @@ export default async function OverviewPage({
         <div className="grid gap-5 lg:grid-cols-5">
           {canSeeDesk ? (
           <PanelCard
-            title="Inventory needing attention"
+            title="Coin stock"
             tip={TIPS.overview.inventoryPanel}
             icon={Wallet}
             tone="amber"
@@ -379,13 +378,13 @@ export default async function OverviewPage({
                 <TableRow>
                   <TableHead className="pl-5">Coin</TableHead>
                   <TableHead className="text-right">Held</TableHead>
-                  <TableHead className="text-right">vs avg</TableHead>
-                  <TableHead className="pr-5 text-right">Lost / day</TableHead>
+                  <TableHead className="text-right">Price vs what we paid</TableHead>
+                  <TableHead className="pr-5 text-right">Profit missed / day</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {inventory.length === 0 ? (
-                  <TableEmpty colSpan={4}>No inventory configured yet.</TableEmpty>
+                  <TableEmpty colSpan={4}>No coins set up on the Inventory desk yet.</TableEmpty>
                 ) : (
                   inventory.slice(0, 6).map((row) => (
                     <TableRow key={row.asset}>
@@ -437,18 +436,13 @@ export default async function OverviewPage({
             <div className="flex flex-col gap-3 px-5 pb-5">
               {transactions.length === 0 ? (
                 <p className="text-muted-foreground py-6 text-center text-sm">
-                  No transactions yet.
+                  No transactions yet. They appear here as customers buy, sell and swap.
                 </p>
               ) : (
                 transactions.slice(0, 6).map((tx) => (
                   <div key={tx.id} className="flex items-center justify-between gap-3 text-sm">
                     <div className="min-w-0">
-                      <p className="truncate font-medium">
-                        {tx.type}{' '}
-                        <span className="text-muted-foreground font-normal">
-                          {tx.fromAsset?.toUpperCase()} → {tx.toAsset?.toUpperCase()}
-                        </span>
-                      </p>
+                      <p className="truncate font-medium">{activityLine(tx)}</p>
                       <p className="text-muted-foreground truncate text-xs">
                         {tx.user} · {relativeTime(tx.createdAt)}
                       </p>
