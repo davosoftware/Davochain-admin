@@ -1,6 +1,8 @@
 import type { PeerSide } from './peer';
 
 export interface UserListRow {
+  /** The name others send crypto to (28 Oct 2026). */
+  payUsername?: string | null;
   /** 1 is the most recent sign-up. Continues across pages. */
   serial: number;
   id: string;

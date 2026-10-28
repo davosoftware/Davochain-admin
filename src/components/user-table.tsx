@@ -115,7 +115,7 @@ export function UserTable({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && runSearch(query)}
-            placeholder="Search name, email or phone"
+            placeholder="Search name, email, phone or @username"
             className="h-8 pl-8"
           />
         </div>
@@ -179,6 +179,9 @@ export function UserTable({
                           <Badge variant="outline" className="ml-2">
                             test
                           </Badge>
+                        ) : null}
+                        {row.payUsername ? (
+                          <span className="text-muted-foreground t-caption block font-normal">@{row.payUsername}</span>
                         ) : null}
                       </TableCell>
                       <TableCell className="text-muted-foreground t-small max-w-[240px] truncate">
