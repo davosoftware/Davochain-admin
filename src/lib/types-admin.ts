@@ -1,4 +1,5 @@
 import type { PeerSide } from './peer';
+import type { TransactionPinInfo } from './transaction-pin';
 import type { BroadcastStatus } from './broadcasts';
 
 export interface UserListRow {
@@ -43,6 +44,8 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
   closedPhone?: string | null;
   /** The name other customers send crypto to (28 Oct 2026); null until chosen. */
   payUsername?: string | null;
+  /** Transaction PIN status (29 Oct 2026). Never the PIN. */
+  transactionPin?: TransactionPinInfo;
   /** When the personal data is due to be deleted, or was (28 Oct 2026). */
   dataDeleteAt?: string | null;
   dataDeletedAt?: string | null;

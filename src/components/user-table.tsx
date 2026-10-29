@@ -28,6 +28,7 @@ import { formatDateOfBirth } from '@/lib/date-of-birth';
 import { dataStatusLine, shownEmail } from '@/lib/account-closure';
 import { CloseAccountSection, DeleteDataSection } from '@/components/close-account';
 import { PayUsernameRow } from '@/components/pay-username-row';
+import { TransactionPinRow } from '@/components/transaction-pin-row';
 
 export function UserTable({
   rows,
@@ -251,6 +252,7 @@ export function UserTable({
                                   <Row label="Phone" value={info.closedPhone ?? info.phone ?? '—'} />
                                   <Row label="Date of birth" value={formatDateOfBirth(info.kyc?.dateOfBirth)} />
                                   <PayUsernameRow userId={row.id} username={info.payUsername} onChanged={() => reload(row.id)} />
+                                  <TransactionPinRow userId={row.id} pin={info.transactionPin} isOwner={isOwner} onChanged={() => reload(row.id)} />
                                   <Row
                                     label="Last seen"
                                     value={info.lastLoginAt ? relativeTime(info.lastLoginAt) : 'never'}
