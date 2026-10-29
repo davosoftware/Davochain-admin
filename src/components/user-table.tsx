@@ -2,7 +2,8 @@
 
 import { Fragment, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronRight, Search, ShieldOff, ShieldCheck, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, History, Search, ShieldOff, ShieldCheck, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { loadUser, reinstateUser, suspendUser } from '@/app/actions/users';
 import type { UserDetail, UserListRow } from '@/lib/types-admin';
@@ -30,6 +31,7 @@ import { CloseAccountSection, DeleteDataSection } from '@/components/close-accou
 import { PayUsernameRow } from '@/components/pay-username-row';
 import { TransactionPinRow } from '@/components/transaction-pin-row';
 import { CustomerPhoto } from '@/components/customer-photo';
+import { historyHref } from '@/lib/customer-history';
 
 export function UserTable({
   rows,
@@ -267,6 +269,13 @@ export function UserTable({
                                   />
                                   <Row label="Transactions" value={String(info.transactionCount)} />
                                 </dl>
+                                <Link
+                                  href={historyHref(row.id)}
+                                  className="text-primary t-small mt-3 inline-flex items-center gap-1.5 hover:underline"
+                                >
+                                  <History className="size-3.5" />
+                                  Trade &amp; transfer history, and balance check
+                                </Link>
                               </div>
 
                               <div>

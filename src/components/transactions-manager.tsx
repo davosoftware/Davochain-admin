@@ -324,7 +324,11 @@ export function TransactionsManager({
               The provider did not give a clear answer, so we do not know yet whether the money moved.
               It is held on purpose while our system keeps asking. <strong>Do not refund these by
               hand</strong>: if the money did move, the customer would be paid twice.{' '}
-              <Link href="?status=RECONCILING" className="text-primary hover:underline">
+              {/* Keeps the other filters, so one customer's history stays on that customer. */}
+              <Link
+                href={`${pathname}?${new URLSearchParams({ ...Object.fromEntries(params), status: 'RECONCILING', page: '1' })}`}
+                className="text-primary hover:underline"
+              >
                 Show them
               </Link>
             </p>

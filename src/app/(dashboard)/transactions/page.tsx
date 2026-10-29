@@ -3,6 +3,8 @@ import type { AdminMe, TxPage } from '@/lib/types-admin';
 import { PageHeader } from '@/components/page-header';
 import { ErrorState } from '@/components/error-state';
 import { TransactionsManager } from '@/components/transactions-manager';
+import { CustomerHistoryPanel } from '@/components/customer-history-panel';
+import type { CustomerCheck } from '@/lib/customer-history';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +21,8 @@ const FORWARDED = [
   'direction',
   'page',
   'pageSize',
+  'userId',
+  'asset',
 ] as const;
 
 export default async function TransactionsPage({
@@ -34,10 +38,21 @@ export default async function TransactionsPage({
     if (single) query.set(key, single);
   }
 
-  const [data, me] = await Promise.all([
+  // One customer's history (29 Oct 2026): the same manager, narrowed to them.
+  const userId = query.get('userId');
+  const [data, me, check] = await Promise.all([
     api<TxPage>(`/v1/admin/transactions/manager?${query}`).catch((e: ApiError) => e),
     api<AdminMe>('/v1/admin/me').catch(() => null),
+    userId
+      ? api<CustomerCheck>(`/v1/admin/users/${encodeURIComponent(userId)}/balance-check`).catch((e: ApiError) => e)
+      : Promise.resolve(null),
   ]);
+  const who =
+    check && !(check instanceof ApiError)
+      ? { name: check.name, email: check.email }
+      : data instanceof ApiError
+        ? null
+        : (data.rows[0] ?? null);
 
   if (data instanceof ApiError) {
     return (
@@ -67,6 +82,18 @@ export default async function TransactionsPage({
         * guard that matters is on the API, which refuses the call whatever the
         * browser chooses to draw.
         */}
+      {userId ? (
+        <CustomerHistoryPanel
+          userId={userId}
+          asset={query.get('asset')}
+          who={who ? { name: who.name, email: who.email } : null}
+          check={check instanceof ApiError ? null : check}
+          checkError={
+            check instanceof ApiError && check.status !== 403 ? `The balance check could not load: ${check.message}` : null
+          }
+        />
+      ) : null}
+
       <TransactionsManager
         data={data}
         canApprove={me?.permissions.includes('transactions.approve') ?? false}
