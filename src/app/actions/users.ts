@@ -76,6 +76,18 @@ export async function removePayUsername(userId: string, reason: string): Promise
   }
 }
 
+/** People → Users: take down an offensive profile photo (29 Oct 2026). The customer is told the reason. */
+export async function removeCustomerPhoto(userId: string, reason: string): Promise<{ ok?: true; error?: string }> {
+  try {
+    await api(`/v1/admin/users/${encodeURIComponent(userId)}/avatar`, { method: 'DELETE', body: JSON.stringify({ reason }) });
+    revalidatePath('/users');
+    return { ok: true };
+  } catch (err) {
+    if (isRedirect(err)) throw err;
+    return { error: err instanceof ApiError ? err.message : 'Could not remove the photo' };
+  }
+}
+
 /** People → Users: unlock a transaction PIN that five wrong tries locked (29 Oct 2026). Owners only; audited. */
 export async function unlockTransactionPin(userId: string): Promise<{ ok?: true; error?: string }> {
   try {

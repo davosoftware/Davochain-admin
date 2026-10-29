@@ -29,6 +29,7 @@ import { dataStatusLine, shownEmail } from '@/lib/account-closure';
 import { CloseAccountSection, DeleteDataSection } from '@/components/close-account';
 import { PayUsernameRow } from '@/components/pay-username-row';
 import { TransactionPinRow } from '@/components/transaction-pin-row';
+import { CustomerPhoto } from '@/components/customer-photo';
 
 export function UserTable({
   rows,
@@ -246,6 +247,13 @@ export function UserTable({
                             <div className="grid gap-6 p-5 lg:grid-cols-3 [&>div]:min-w-0">
                               <div>
                                 <p className="eyebrow mb-2">Details</p>
+                                <CustomerPhoto
+                                  userId={row.id}
+                                  avatarUrl={info.avatarUrl}
+                                  firstName={info.firstName}
+                                  lastName={info.lastName}
+                                  onChanged={() => reload(row.id)}
+                                />
                                 <dl className="t-small flex flex-col gap-1.5">
                                   <Row label="Full name" value={`${info.firstName} ${info.lastName}`} />
                                   <Row label="Email" value={shownEmail(info)} />

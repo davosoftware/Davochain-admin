@@ -44,6 +44,8 @@ export interface UserDetail extends Omit<UserListRow, 'walletReady' | 'suspended
   closedPhone?: string | null;
   /** The name other customers send crypto to (28 Oct 2026); null until chosen. */
   payUsername?: string | null;
+  /** The dashboard's link to the profile photo (29 Oct 2026), or null. */
+  avatarUrl?: string | null;
   /** Transaction PIN status (29 Oct 2026). Never the PIN. */
   transactionPin?: TransactionPinInfo;
   /** When the personal data is due to be deleted, or was (28 Oct 2026). */
