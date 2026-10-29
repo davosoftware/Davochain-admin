@@ -97,6 +97,7 @@ export default async function TransactionsPage({
       <TransactionsManager
         data={data}
         canApprove={me?.permissions.includes('transactions.approve') ?? false}
+        isOwner={me?.role === 'OWNER'}
       />
     </>
   );

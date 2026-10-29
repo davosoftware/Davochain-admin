@@ -49,6 +49,7 @@ export async function decideTransaction(
       body: JSON.stringify({ outcome, note }),
     });
     revalidatePath('/reconciliation');
+    revalidatePath('/transactions');
     return { ok: true };
   } catch (err) {
     if (isRedirect(err)) throw err;

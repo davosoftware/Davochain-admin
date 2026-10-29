@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportTransactions, markDepositReturned, rejectDeposit, releaseDeposit } from '@/app/actions/transactions';
+import { decideTransaction } from '@/app/actions/reconciliation';
+import { completeLabel, decisionFor, type Decision } from '@/lib/transaction-decision';
 import type { TxPage, TxRow, TxTab } from '@/lib/types-admin';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -136,10 +138,13 @@ function stamp(iso: string): string {
 export function TransactionsManager({
   data,
   canApprove,
+  isOwner = false,
 }: {
   data: TxPage;
   /** Without it the approval buttons are not rendered at all. */
   canApprove: boolean;
+  /** Only an owner completes or rejects a waiting send, withdrawal or trade. */
+  isOwner?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -273,6 +278,43 @@ export function TransactionsManager({
               : 'No money moved. The depositor has been told why.',
         },
       );
+      router.refresh();
+    });
+
+  /**
+   * An owner finishes a waiting buy, sell, swap or withdrawal by hand (29 Oct
+   * 2026): complete it (the customer is credited) or reject it (the money goes
+   * back). Both run the same once-only paths the automatic flow uses.
+   */
+  const resolve = (row: TxRow, outcome: 'COMPLETED' | 'FAILED') =>
+    start(async () => {
+      const typed =
+        outcome === 'COMPLETED'
+          ? globalThis.prompt(
+              `${completeLabel(row)}?\n\nOnly do this after checking the provider (Quidax for coins, Payrep for naira) shows the money really moved — ` +
+                'if it did not, our records would show money that is not there.\n\n' +
+                'What did you check? (at least 10 characters, kept in the audit log)',
+            )
+          : globalThis.prompt(
+              `Reject this ${row.type.toLowerCase()} and return the money to ${row.name}'s balance?\n\n` +
+                'Only do this after checking the provider (Quidax for coins, Payrep for naira) shows nothing moved — if it did, they would be paid twice.\n\n' +
+                'Reason (the customer sees this, at least 10 characters):',
+            );
+      if (!typed?.trim()) return;
+      if (typed.trim().length < 10) {
+        toast.error('Write a little more', { description: 'At least 10 characters, so the record explains itself.' });
+        return;
+      }
+      setDeciding(row.id);
+      const result = await decideTransaction(row.id, outcome, typed.trim());
+      setDeciding(null);
+      if (result.error) {
+        toast.error(outcome === 'COMPLETED' ? 'Could not complete it' : 'Could not reject it', { description: result.error });
+        return;
+      }
+      toast.success(outcome === 'COMPLETED' ? 'Completed' : 'Rejected and the money returned', {
+        description: 'The customer has been told.',
+      });
       router.refresh();
     });
 
@@ -585,7 +627,13 @@ export function TransactionsManager({
                                 and pinned to the left edge — so the panel is
                                 whole however far the columns are scrolled. */}
                             <div className="sticky left-0 w-[100cqw]">
-                              <Detail row={row} />
+                              <Detail
+                                row={row}
+                                decision={decisionFor(row, { canApprove, isOwner })}
+                                busy={busy}
+                                onDeposit={(action) => decide(row, action)}
+                                onResolve={(outcome) => resolve(row, outcome)}
+                              />
                             </div>
                           </TableCell>
                         </TableRow>
@@ -670,11 +718,57 @@ export function TransactionsManager({
  * What the table cannot show: the settlement legs, what Quidax said, and why a
  * transaction stopped where it did.
  */
-function Detail({ row }: { row: TxRow }) {
+function Detail({
+  row,
+  decision,
+  busy,
+  onDeposit,
+  onResolve,
+}: {
+  row: TxRow;
+  decision: Decision | null;
+  busy: boolean;
+  onDeposit: (action: 'release' | 'reject') => void;
+  onResolve: (outcome: 'COMPLETED' | 'FAILED') => void;
+}) {
   const stuck = row.status === 'RECONCILING';
 
   return (
     <div className="grid gap-6 p-5 lg:grid-cols-3">
+      {decision ? (
+        <div className="border-border/70 bg-card flex flex-wrap items-center gap-3 rounded-lg border p-3 lg:col-span-3">
+          <p className="t-small min-w-0 flex-1">
+            {decision === 'DEPOSIT'
+              ? 'This deposit is waiting for a decision. Credit it to the customer now, or reject it with a reason they will see.'
+              : decision === 'WAITING'
+                ? 'This is still waiting. After checking the provider (Quidax for coins, Payrep for naira), complete it (the customer is credited) or reject it with a reason (the money goes back to their balance).'
+                : 'This is still waiting. Only an owner can complete or reject it by hand.'}
+          </p>
+          {decision === 'DEPOSIT' ? (
+            <div className="flex gap-2">
+              <Button size="sm" loading={busy} onClick={() => onDeposit('release')}>
+                <Check className="size-3.5" />
+                Credit customer now
+              </Button>
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => onDeposit('reject')}>
+                <X className="size-3.5" />
+                Reject with reason
+              </Button>
+            </div>
+          ) : decision === 'WAITING' ? (
+            <div className="flex gap-2">
+              <Button size="sm" loading={busy} onClick={() => onResolve('COMPLETED')}>
+                <Check className="size-3.5" />
+                {completeLabel(row)}
+              </Button>
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => onResolve('FAILED')}>
+                <X className="size-3.5" />
+                Reject with reason
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <div>
         <p className="eyebrow mb-2">Movement</p>
         <dl className="t-small flex flex-col gap-1.5">
@@ -782,7 +876,7 @@ function Detail({ row }: { row: TxRow }) {
             <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
             <span>
               The outcome is unknown and the funds are deliberately locked. A worker is polling
-              Quidax. Do not refund this by hand.
+              Quidax. Only complete or reject it by hand after checking Quidax yourself.
             </span>
           </p>
         ) : null}
